@@ -6,7 +6,7 @@ import 'package:classificador/screens/new_call_screen.dart';
 import 'package:classificador/screens/notifications_screen.dart';
 import 'package:classificador/screens/profile_settings_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; 
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
@@ -25,19 +25,22 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      extendBody: true,
+      extendBody: true, // Importante para o efeito de transparência
       body: IndexedStack(
         index: _selectedIndex,
         children: [
           const HomeScreen(),
-          const CallsScreen(), // Tela de Chamados (Índice 1)
+          const CallsScreen(),
           const NotificationsScreen(),
           Consumer<ThemeModel>(
             builder: (context, themeModel, child) {
               final user = themeModel.currentUser;
-              return user != null 
-                ? ProfileSettingsScreen(user: user) 
-                : const PlaceholderScreen(title: 'Ajustes', icon: Icons.settings);
+              return user != null
+                  ? ProfileSettingsScreen(user: user)
+                  : const PlaceholderScreen(
+                      title: 'Ajustes',
+                      icon: Icons.settings,
+                    );
             },
           ),
         ],
@@ -48,40 +51,85 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
 
   Widget _buildModernNavBar(ColorScheme cs) {
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 24), 
-      height: 72,
-      decoration: BoxDecoration(
-        color: cs.surface.withOpacity(0.85),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: cs.outlineVariant.withOpacity(0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _buildNavItem(0, Icons.home_outlined, Icons.home_rounded, "Início", cs),
-                _buildNavItem(1, Icons.assignment_outlined, Icons.assignment_rounded, "Chamados", cs),
-                
-                _buildAddButton(cs), 
-
-                _buildNavItem(2, Icons.notifications_outlined, Icons.notifications_rounded, "Avisos", cs),
-                _buildNavItem(3, Icons.settings_outlined, Icons.settings_rounded, "Ajustes", cs),
+      padding: const EdgeInsets.only(bottom: 10), // Espaço extra para o respiro
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        clipBehavior: Clip.none,
+        children: [
+          // Barra Principal
+          Container(
+            margin: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+            height: 70,
+            decoration: BoxDecoration(
+              color: cs.surface.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
               ],
             ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildNavItem(
+                        0,
+                        Icons.grid_view_outlined,
+                        Icons.grid_view_rounded,
+                        "Início",
+                        cs,
+                      ),
+                      _buildNavItem(
+                        1,
+                        Icons.confirmation_number_outlined,
+                        Icons.confirmation_number_rounded,
+                        "Chamados",
+                        cs,
+                      ),
+
+                      const SizedBox(
+                        width: 48,
+                      ), // Espaço reservado para o botão de +
+
+                      _buildNavItem(
+                        2,
+                        Icons.notifications_none_rounded,
+                        Icons.notifications_rounded,
+                        "Avisos",
+                        cs,
+                      ),
+                      _buildNavItem(
+                        3,
+                        Icons.person_outline_rounded,
+                        Icons.person_rounded,
+                        "Perfil",
+                        cs,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-        ),
+
+          // Botão central flutuante posicionado sobre a barra
+          Positioned(
+            bottom: 45, // Faz o botão "subir" e romper a borda
+            child: _buildAddButton(cs),
+          ),
+        ],
       ),
     );
   }
@@ -89,60 +137,84 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
   Widget _buildAddButton(ColorScheme cs) {
     return GestureDetector(
       onTap: () async {
-        HapticFeedback.mediumImpact();
-        
-        // CORREÇÃO: Aguarda o fechamento da tela de Novo Chamado
+        HapticFeedback.heavyImpact();
         await Navigator.push(
-          context, 
-          MaterialPageRoute(builder: (_) => const NewCallScreen())
+          context,
+          MaterialPageRoute(builder: (_) => const NewCallScreen()),
         );
-
-        // Ao voltar, força a reconstrução para que as telas filhas atualizem
-        setState(() {}); 
+        setState(() {});
       },
       child: Container(
-        width: 46,
-        height: 46,
+        padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: cs.primary,
+          color: cs.surface,
           shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: cs.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))],
+          boxShadow: [
+            BoxShadow(
+              color: cs.primary.withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-        child: Icon(Icons.add, color: cs.onPrimary, size: 26),
+        child: Container(
+          width: 54,
+          height: 54,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [cs.primary, cs.primary.withBlue(255)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
+        ),
       ),
     );
   }
-
-  Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label, ColorScheme cs) {
+Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label, ColorScheme cs) {
     final isSelected = _selectedIndex == index;
+
     return GestureDetector(
       onTap: () {
-        HapticFeedback.lightImpact(); 
+        HapticFeedback.selectionClick();
         setState(() => _selectedIndex = index);
       },
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? cs.primary.withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-        ),
+      child: SizedBox(
+        width: 60, // Ajustei a largura para caber melhor em telas pequenas
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              color: isSelected ? cs.primary : cs.onSurfaceVariant,
-              size: 22,
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut, // Troquei para easeInOut que é padrão e seguro
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                // Cria um fundo suave apenas quando selecionado
+                color: isSelected ? cs.primary.withOpacity(0.12) : Colors.transparent,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                isSelected ? activeIcon : icon,
+                color: isSelected ? cs.primary : cs.onSurfaceVariant.withOpacity(0.6),
+                size: 24,
+              ),
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                color: isSelected ? cs.primary : cs.onSurfaceVariant,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 10,
+            const SizedBox(height: 4),
+            // O texto aparece suavemente
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: isSelected ? 1.0 : 0.0,
+              child: Text(
+                label,
+                style: GoogleFonts.inter(
+                  color: cs.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
               ),
             ),
           ],
@@ -151,6 +223,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     );
   }
 }
+
 
 class PlaceholderScreen extends StatelessWidget {
   final String title;
@@ -168,25 +241,22 @@ class PlaceholderScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                icon, 
-                size: 80, 
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.5)
+                icon,
+                size: 80,
+                color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
               ),
               const SizedBox(height: 24),
               Text(
                 'Tela de $title',
                 style: GoogleFonts.inter(
-                  fontSize: 20, 
-                  fontWeight: FontWeight.bold
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Em breve teremos novidades aqui!',
-                style: GoogleFonts.inter(
-                  fontSize: 14, 
-                  color: Colors.grey
-                ),
+                style: GoogleFonts.inter(fontSize: 14, color: Colors.grey),
               ),
             ],
           ),
@@ -195,6 +265,3 @@ class PlaceholderScreen extends StatelessWidget {
     );
   }
 }
-
-
-

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:classificador/config.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -76,7 +77,7 @@ class _NewCallScreenState extends State<NewCallScreen> {
 
     print('📤 Enviando para API: ${jsonEncode(body)}');
 
-    final uri = Uri.parse('http://10.232.135.191:3001/api/chamado');
+    final uri = Uri.parse('${AppConfig.baseUrl}/api/chamado');
     print('🌐 Endpoint: $uri');
 
     try {

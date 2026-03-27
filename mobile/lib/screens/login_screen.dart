@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:classificador/config.dart';
 import 'package:classificador/screens/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -134,7 +135,7 @@ Future<void> _login() async {
       }
 
       body = {'PessoaUsuario': cpf, 'PessoaSenha': senha};
-      url = Uri.parse('http://10.232.135.191:3001/api/pessoa/login');
+      url = Uri.parse('${AppConfig.baseUrl}/api/pessoa/login');
     } else {
       final usuario = _usuarioController.text.trim().toUpperCase();
       final senha = _senhaController.text.trim();
@@ -144,7 +145,7 @@ Future<void> _login() async {
       }
 
       body = {'TecnicoUsuario': usuario, 'TecnicoSenha': senha};
-      url = Uri.parse('http://10.232.135.191:3001/api/tecnico/login');
+      url = Uri.parse('${AppConfig.baseUrl}/api/tecnico/login');
     }
 
     final response = await http

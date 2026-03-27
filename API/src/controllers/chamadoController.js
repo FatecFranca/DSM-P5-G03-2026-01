@@ -173,16 +173,16 @@ class ChamadoController {
 
                 // Pessoa não pode alterar campos restritos
                 if (TipSupId !== undefined || EquipeId !== undefined || ChamadoPrioridade !== undefined || 
-                    ChamadoUrgencia !== undefined || ChamadoStatus !== undefined) {
+                    ChamadoUrgencia !== undefined) {
                     return res.status(403).json({
                         error: 'Você não pode alterar tipo de suporte, equipe, prioridade, urgência ou status do chamado'
                     });
                 }
 
-                // Caso o status jánão seja mais pendentes, não se pode alterar
+                // Caso o status já não seja mais pendentes, não se pode alterar
                 if (chamadoExistente.ChamadoStatus !== 'PENDENTE') {
                     return res.status(403).json({
-                        error: 'Chamado jánão estámasi pendente, não permitido alterar.'
+                        error: 'Chamado já não está mais pendente, não permitido alterar.'
                     })
                 }
             }

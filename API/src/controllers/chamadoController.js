@@ -175,7 +175,7 @@ class ChamadoController {
                 if (TipSupId !== undefined || EquipeId !== undefined || ChamadoPrioridade !== undefined || 
                     ChamadoUrgencia !== undefined) {
                     return res.status(403).json({
-                        error: 'Você não pode alterar tipo de suporte, equipe, prioridade, urgência ou status do chamado'
+                        error: 'Você não pode alterar tipo de suporte, equipe, prioridade ou urgência do chamado'
                     });
                 }
 
@@ -280,11 +280,18 @@ class ChamadoController {
                 dadosAtualizacao.ChamadoUrgencia = ChamadoUrgencia;
             }
 
-            if (ChamadoStatus !== undefined && tipoAcesso !== 'PESSOA') {
+            if (ChamadoStatus !== undefined) {
                 const statusValidos = ['PENDENTE', 'ANALISADO', 'ATRIBUIDO', 'EMATENDIMENTO', 'CONCLUIDO', 'CANCELADO', 'RECUSADO'];
                 if (!statusValidos.includes(ChamadoStatus)) {
                     return res.status(400).json({ 
                         error: 'Status inválido' 
+                    });
+                }
+
+                // Pessoa só aceita cancelar
+                if (ChamadoStatus !== 'CANCELADO' && tipoAcesso === 'PESSOA'){
+                    return res.status(400).json({ 
+                        error: 'Usuário pessoa só pode alterar o status para cancelado' 
                     });
                 }
 

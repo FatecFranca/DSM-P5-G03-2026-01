@@ -172,17 +172,17 @@ class ChamadoController {
                 tipoAcesso = 'PESSOA';
 
                 // Pessoa não pode alterar campos restritos
-                if (TipSupId !== undefined || EquipeId !== undefined || ChamadoPrioridade !== undefined || 
-                    ChamadoUrgencia !== undefined) {
+                if (TipSupId !== undefined || EquipeId !== undefined || ChamadoPrioridade !== undefined ||
+                    ChamadoUrgencia !== undefined || ChamadoStatus !== undefined) {
                     return res.status(403).json({
-                        error: 'Você não pode alterar tipo de suporte, equipe, prioridade ou urgência do chamado'
+                        error: 'Você não pode alterar tipo de suporte, equipe, prioridade, urgência ou status do chamado'
                     });
                 }
 
                 // Caso o status já não seja mais pendentes, não se pode alterar
                 if (chamadoExistente.ChamadoStatus !== 'PENDENTE') {
                     return res.status(403).json({
-                        error: 'Chamado já não está mais pendente, não permitido alterar.'
+                        error: 'Chamado jáz não está mais pendente, não permitido alterar.'
                     })
                 }
             }
@@ -221,8 +221,8 @@ class ChamadoController {
                     });
 
                     if (!tipoSuporte) {
-                        return res.status(404).json({ 
-                            error: 'Tipo de suporte não encontrado ou não pertence à unidade' 
+                        return res.status(404).json({
+                            error: 'Tipo de suporte não encontrado ou não pertence à unidade'
                         });
                     }
                 }
@@ -241,8 +241,8 @@ class ChamadoController {
                     });
 
                     if (!equipe) {
-                        return res.status(404).json({ 
-                            error: 'Equipe não encontrada ou não pertence à unidade' 
+                        return res.status(404).json({
+                            error: 'Equipe não encontrada ou não pertence à unidade'
                         });
                     }
                 }
@@ -263,8 +263,8 @@ class ChamadoController {
             if (ChamadoPrioridade !== undefined && tipoAcesso !== 'PESSOA') {
                 const prioridade = parseInt(ChamadoPrioridade);
                 if (isNaN(prioridade) || prioridade < 1 || prioridade > 10) {
-                    return res.status(400).json({ 
-                        error: 'Prioridade deve ser um número entre 1 e 10' 
+                    return res.status(400).json({
+                        error: 'Prioridade deve ser um número entre 1 e 10'
                     });
                 }
                 dadosAtualizacao.ChamadoPrioridade = prioridade;
@@ -273,25 +273,18 @@ class ChamadoController {
             if (ChamadoUrgencia !== undefined && tipoAcesso !== 'PESSOA') {
                 const urgenciasValidas = ['BAIXA', 'MEDIA', 'ALTA', 'URGENTE'];
                 if (!urgenciasValidas.includes(ChamadoUrgencia)) {
-                    return res.status(400).json({ 
-                        error: 'Urgência inválida. Use: BAIXA, MEDIA, ALTA ou URGENTE' 
+                    return res.status(400).json({
+                        error: 'Urgência inválida. Use: BAIXA, MEDIA, ALTA ou URGENTE'
                     });
                 }
                 dadosAtualizacao.ChamadoUrgencia = ChamadoUrgencia;
             }
 
-            if (ChamadoStatus !== undefined) {
+            if (ChamadoStatus !== undefined && tipoAcesso !== 'PESSOA') {
                 const statusValidos = ['PENDENTE', 'ANALISADO', 'ATRIBUIDO', 'EMATENDIMENTO', 'CONCLUIDO', 'CANCELADO', 'RECUSADO'];
                 if (!statusValidos.includes(ChamadoStatus)) {
-                    return res.status(400).json({ 
-                        error: 'Status inválido' 
-                    });
-                }
-
-                // Pessoa só aceita cancelar
-                if (ChamadoStatus !== 'CANCELADO' && tipoAcesso === 'PESSOA'){
-                    return res.status(400).json({ 
-                        error: 'Usuário pessoa só pode alterar o status para cancelado' 
+                    return res.status(400).json({
+                        error: 'Status inválido'
                     });
                 }
 
@@ -301,8 +294,8 @@ class ChamadoController {
                 }
 
                 // Se for cancelar/recusar, adicionar data de encerramento
-                if ((ChamadoStatus === 'CANCELADO' || ChamadoStatus === 'RECUSADO') && 
-                    chamadoExistente.ChamadoStatus !== 'CANCELADO' && 
+                if ((ChamadoStatus === 'CANCELADO' || ChamadoStatus === 'RECUSADO') &&
+                    chamadoExistente.ChamadoStatus !== 'CANCELADO' &&
                     chamadoExistente.ChamadoStatus !== 'RECUSADO') {
                     dadosAtualizacao.ChamadoDtEncerramento = new Date();
                 }
@@ -729,8 +722,8 @@ class ChamadoController {
             });
 
             if (!equipe) {
-                return res.status(404).json({ 
-                    error: 'Equipe não encontrada ou não pertence à unidade' 
+                return res.status(404).json({
+                    error: 'Equipe não encontrada ou não pertence à unidade'
                 });
             }
 
@@ -836,6 +829,16 @@ class ChamadoController {
                     }
                     podeAlterarStatus = true;
                 }
+            } else if (usuarioLogado.usuarioTipo === 'PESSOA') {
+                if (ChamadoStatus !== 'CANCELADO') {
+                    return res.status(403).json({
+                        error: 'Pessoas só podem cancelar chamados e que estão pendentes'
+                    });
+                }
+
+                if (chamado.PessoaId === usuarioLogado.usuarioId) {
+                    podeAlterarStatus = true;
+                }
             }
 
             if (!podeAlterarStatus) {
@@ -871,8 +874,8 @@ class ChamadoController {
             }
 
             // Se for cancelar/recusar, adicionar data de encerramento
-            if ((ChamadoStatus === 'CANCELADO' || ChamadoStatus === 'RECUSADO') && 
-                chamado.ChamadoStatus !== 'CANCELADO' && 
+            if ((ChamadoStatus === 'CANCELADO' || ChamadoStatus === 'RECUSADO') &&
+                chamado.ChamadoStatus !== 'CANCELADO' &&
                 chamado.ChamadoStatus !== 'RECUSADO') {
                 dadosAtualizacao.ChamadoDtEncerramento = new Date();
             }
@@ -917,7 +920,7 @@ class ChamadoController {
             // Definir período (padrão: últimos 30 dias)
             const dataFim = new Date();
             const dataInicio = new Date();
-            
+
             if (periodo === '7d') {
                 dataInicio.setDate(dataInicio.getDate() - 7);
             } else if (periodo === '30d') {
@@ -1027,7 +1030,7 @@ class ChamadoController {
             res.status(500).json({ error: error.message });
         }
     }
-    
+
 }
 
 module.exports = new ChamadoController();

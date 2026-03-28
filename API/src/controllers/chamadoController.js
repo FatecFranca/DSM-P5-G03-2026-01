@@ -124,7 +124,7 @@ class ChamadoController {
                 TipSupId,
                 EquipeId,
                 ChamadoTitulo,
-                ChamadoDescricaoFormatada,
+                ChamadoDescricaoInicial,
                 ChamadoPrioridade,
                 ChamadoUrgencia,
                 ChamadoStatus
@@ -256,8 +256,8 @@ class ChamadoController {
                 dadosAtualizacao.ChamadoTitulo = ChamadoTitulo.trim();
             }
 
-            if (ChamadoDescricaoFormatada !== undefined) {
-                dadosAtualizacao.ChamadoDescricaoFormatada = ChamadoDescricaoFormatada?.trim() || null;
+            if (ChamadoDescricaoInicial !== undefined) {
+                dadosAtualizacao.ChamadoDescricaoInicial = ChamadoDescricaoInicial?.trim() || null;
             }
 
             if (ChamadoPrioridade !== undefined && tipoAcesso !== 'PESSOA') {

@@ -1,8 +1,7 @@
 import 'dart:async';
-import 'dart:io';
-
 import 'package:classificador/config.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -20,6 +19,7 @@ class NewCallScreen extends StatefulWidget {
 
 class _NewCallScreenState extends State<NewCallScreen> {
   final TextEditingController _descricaoController = TextEditingController();
+  bool _isSubmitting = false; // Controle de loading interno do botão
 
   late ThemeModel _themeModel;
   UserProfile? _currentUser;
@@ -39,82 +39,52 @@ class _NewCallScreenState extends State<NewCallScreen> {
 
   Future<void> _submitCall() async {
     if (_descricaoController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('⚠️ Descrição é obrigatória!')),
-      );
+      _showCustomSnackBar('⚠️ Descreva o problema antes de enviar', isError: true);
       return;
     }
+
+    setState(() => _isSubmitting = true);
 
     final user = _currentUser;
-    if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ Usuário não encontrado.')),
-      );
-      return;
-    }
-
-    if (user.token == null || user.token!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ Token de autenticação ausente.')),
-      );
-      return;
-    }
-
-    if (user.unidadeId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ ID da unidade não encontrado.')),
-      );
-      return;
-    }
-
-    print('✅ Usuário logado: id=${user.id}, unidadeId=${user.unidadeId}');
-
     final body = {
-      'PessoaId': user.id,
-      'UnidadeId': user.unidadeId!, 
+      'PessoaId': user!.id,
+      'UnidadeId': user.unidadeId!,
       'ChamadoDescricaoInicial': _descricaoController.text.trim(),
     };
 
-    print('📤 Enviando para API: ${jsonEncode(body)}');
-
-    final uri = Uri.parse('${AppConfig.baseUrl}/api/chamado');
-    print('🌐 Endpoint: $uri');
-
     try {
       final response = await http.post(
-        uri,
+        Uri.parse('${AppConfig.baseUrl}/api/chamado'),
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${user.token}', 
+          'Authorization': 'Bearer ${user.token}',
         },
-          body: jsonEncode(body),
+        body: jsonEncode(body),
       );
 
-      print('📡 Resposta HTTP: ${response.statusCode}');
-      print('📄 Corpo da resposta: ${response.body}');
-
       if (response.statusCode == 201) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Chamado criado com sucesso!'),
-            backgroundColor: Color(0xFF4CAF50),
-          ),
-        );
-        Navigator.pop(context);
+        _showCustomSnackBar('✅ Chamado registrado com sucesso!');
+        Navigator.pop(context); // Fecha a tela e aciona o refresh automático que configuramos no NavBar
       } else {
-        final errorMsg =
-            jsonDecode(response.body)['message'] ?? 'Erro desconhecido';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('❌ Status ${response.statusCode}: $errorMsg')),
-        );
+        _showCustomSnackBar('❌ Erro ao salvar: ${response.statusCode}', isError: true);
       }
-    } catch (e, stack) {
-      print('💥 Exceção: $e');
-      print('Stack trace: $stack');
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('💥 Erro: $e')));
+    } catch (e) {
+      _showCustomSnackBar('💥 Falha na conexão com o servidor', isError: true);
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  void _showCustomSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+        backgroundColor: isError ? Colors.redAccent : Colors.green[700],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   @override
@@ -122,77 +92,124 @@ class _NewCallScreenState extends State<NewCallScreen> {
     final cs = Theme.of(context).colorScheme;
     final fontSize = _themeModel.fontSizeScale;
 
-    if (_currentUser == null) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text('Carregando...', style: GoogleFonts.inter()),
-            ],
-          ),
-        ),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(title: Text('Novo Chamado', style: GoogleFonts.inter())),
-      body: Padding(
+      backgroundColor: cs.surface,
+      appBar: AppBar(
+        title: Text('Abrir Chamado', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Descrição do problema',
-              style: GoogleFonts.inter(
-                fontSize: 16 * fontSize,
-                fontWeight: FontWeight.bold,
-                color: cs.onSurface,
+            // Header instrutivo
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: cs.primary.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: cs.primary.withOpacity(0.1)),
               ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _descricaoController,
-              maxLines: 6,
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: cs.outline),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: cs.primary, width: 2),
-                ),
-                hintText: 'Descreva o problema com detalhes...',
-                filled: true,
-                fillColor: cs.surfaceVariant,
-              ),
-              style: GoogleFonts.inter(
-                fontSize: 16 * fontSize,
-                color: cs.onSurface,
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: cs.primary, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Seja específico na descrição para que nossa equipe técnica possa te ajudar mais rápido.',
+                      style: GoogleFonts.inter(fontSize: 13, color: cs.onSurfaceVariant),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 32),
+            
+            Text(
+              'O QUE ESTÁ ACONTECENDO?',
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
+                color: cs.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            
+            // Campo de texto estilo "Papel"
+            TextField(
+              controller: _descricaoController,
+              maxLines: 8,
+              maxLength: 500,
+              style: GoogleFonts.inter(fontSize: 16 * fontSize),
+              decoration: InputDecoration(
+                hintText: 'Ex: Há um buraco na rua das flores...',
+                hintStyle: GoogleFonts.inter(color: Colors.grey[400]),
+                filled: true,
+                fillColor: cs.surfaceVariant.withOpacity(0.3),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide(color: cs.primary, width: 2),
+                ),
+                counterStyle: GoogleFonts.inter(fontSize: 12),
+              ),
+            ),
+            
+            const SizedBox(height: 40),
+
+            // Botão com estado de carregamento
             SizedBox(
               width: double.infinity,
+              height: 58,
               child: ElevatedButton(
-                onPressed: _submitCall,
+                onPressed: _isSubmitting ? null : _submitCall,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: cs.primary,
                   foregroundColor: cs.onPrimary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  elevation: 0,
+                  disabledBackgroundColor: cs.primary.withOpacity(0.6),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                 ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.send_rounded, size: 20),
+                          const SizedBox(width: 10),
+                          Text(
+                            'ENVIAR SOLICITAÇÃO',
+                            style: GoogleFonts.inter(
+                              fontSize: 15 * fontSize,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            
+            const SizedBox(height: 16),
+            Center(
+              child: TextButton(
+                onPressed: () => Navigator.pop(context),
                 child: Text(
-                  'Criar Chamado',
-                  style: GoogleFonts.inter(
-                    fontSize: 18 * fontSize,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  'Descartar rascunho',
+                  style: GoogleFonts.inter(color: Colors.redAccent, fontWeight: FontWeight.w600),
                 ),
               ),
             ),

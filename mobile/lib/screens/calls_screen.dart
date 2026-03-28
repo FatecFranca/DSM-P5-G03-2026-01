@@ -172,6 +172,114 @@ class CallsScreenState extends State<CallsScreen> {
     }
   }
 
+  Future<void> _editCall(CallModel call) async {
+    // 1. Validação de Regra de Negócio Local
+    final status = call.status.toUpperCase();
+    if (status != 'PENDENTE' && status != 'FALTAINFORMACAO') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            '⚠️ Só é possível editar chamados Pendentes ou com Falta de Informação',
+          ),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final TextEditingController editController = TextEditingController(
+      text: call.descricaoInicial,
+    );
+
+    // 2. Abre Modal de Edição
+    final bool? confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Editar Descrição',
+          style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+        ),
+        content: TextField(
+          controller: editController,
+          maxLines: 4,
+          decoration: InputDecoration(
+            hintText: 'Digite a nova descrição...',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            ),
+            child: const Text(
+              'Salvar Alterações',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || editController.text.trim().isEmpty) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      // 3. Rota PUT: http://localhost:3001/api/chamado/{id}
+      final url = Uri.parse('${AppConfig.baseUrl}/api/chamado/${call.id}');
+
+      final bodyMap = {'ChamadoDescricaoInicial': editController.text.trim()};
+
+      debugPrint('📝 Editando chamado #${call.id}');
+      debugPrint('📦 Dados enviados: ${jsonEncode(bodyMap)}');
+
+      final response = await http
+          .put(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ${_currentUser!.token}',
+            },
+            body: jsonEncode({
+              'ChamadoDescricaoInicial': editController.text.trim(),
+              'PessoaId': _currentUser!.id,
+              'UnidadeId': _currentUser!.unidadeId,
+            }),
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Chamado atualizado!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        await loadCalls(); // Atualiza a lista
+      } else {
+        final data = jsonDecode(response.body);
+        throw data['error'] ?? data['message'] ?? 'Erro ${response.statusCode}';
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Erro: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   // Métodos auxiliares de SnackBar simplificados para evitar erros de referência
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -323,25 +431,18 @@ class CallsScreenState extends State<CallsScreen> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildBtn(
-                              'Editar',
-                              Icons.edit_outlined,
-                              cs.primary,
+                            child: GestureDetector(
+                              onTap: () => _editCall(
+                                call,
+                              ), // Passamos o objeto 'call' inteiro para facilitar
+                              child: _buildBtn(
+                                'Editar',
+                                Icons.edit_outlined,
+                                cs.primary,
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
-                          // Expanded(
-                          //   child: GestureDetector(
-                          //     onTap: () => _cancelCall(
-                          //       call.id!,
-                          //     ), // Chama a função passando o ID
-                          //     child: _buildBtn(
-                          //       'Cancelar',
-                          //       Icons.close,
-                          //       Colors.red[700]!,
-                          //     ),
-                          //   ),
-                          // ),
                           Expanded(
                             child: GestureDetector(
                               onTap: () {

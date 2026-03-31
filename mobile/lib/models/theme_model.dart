@@ -43,6 +43,11 @@ class ThemeModel extends ChangeNotifier {
 
   void setCurrentUser(UserProfile user) {
     _currentUser = user;
+   
+    if (user != null) {
+      debugPrint('✅ ThemeModel: Usuário logado! ID: ${user.id}, Role: ${user.role}');
+    }
+
     notifyListeners();
   }
 

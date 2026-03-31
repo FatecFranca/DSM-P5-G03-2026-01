@@ -10,7 +10,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 import '../models/theme_model.dart';
 import '../models/user_model.dart';
-import 'profile_settings_screen.dart';
 
 // === Formatação para maiúsculas ===
 class UpperCaseTextFormatter extends TextInputFormatter {
@@ -34,41 +33,26 @@ class CpfFormatter extends TextInputFormatter {
     TextEditingValue newValue,
   ) {
     final text = newValue.text.replaceAll(RegExp(r'\D'), '');
-
     if (text.length <= 3) {
       return TextEditingValue(
         text: text,
         selection: TextSelection.collapsed(offset: text.length),
       );
-    } else if (text.length <= 6) {
-      final formatted = '${text.substring(0, 3)}.${text.substring(3)}';
-      return TextEditingValue(
-        text: formatted,
-        selection: TextSelection.collapsed(offset: formatted.length),
-      );
-    } else if (text.length <= 9) {
-      final formatted =
-          '${text.substring(0, 3)}.${text.substring(3, 6)}.${text.substring(6)}';
-      return TextEditingValue(
-        text: formatted,
-        selection: TextSelection.collapsed(offset: formatted.length),
-      );
     } else if (text.length <= 11) {
-      final formatted =
-          '${text.substring(0, 3)}.${text.substring(3, 6)}.${text.substring(6, 9)}-${text.substring(9)}';
-      return TextEditingValue(
-        text: formatted,
-        selection: TextSelection.collapsed(offset: formatted.length),
-      );
-    } else {
-      final truncated = text.substring(0, 11);
-      final formatted =
-          '${truncated.substring(0, 3)}.${truncated.substring(3, 6)}.${truncated.substring(6, 9)}-${truncated.substring(9)}';
+      // Simplifiquei a lógica para brevidade, mantendo a funcionalidade
+      String formatted = text;
+      if (text.length > 3)
+        formatted = '${text.substring(0, 3)}.${text.substring(3)}';
+      if (text.length > 6)
+        formatted = '${formatted.substring(0, 7)}.${text.substring(6)}';
+      if (text.length > 9)
+        formatted = '${formatted.substring(0, 11)}-${text.substring(9)}';
       return TextEditingValue(
         text: formatted,
         selection: TextSelection.collapsed(offset: formatted.length),
       );
     }
+    return oldValue;
   }
 }
 
@@ -112,93 +96,71 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-Future<void> _login() async {
-  if (_isLoading) return;
+  Future<void> _login() async {
+    if (_isLoading) return;
 
-  setState(() {
-    _isLoading = true;
-  });
+    setState(() => _isLoading = true);
 
-  try {
-    final Map<String, dynamic> body;
-    final Uri url;
+    try {
+      final Map<String, dynamic> body;
+      final Uri url;
 
-    if (_isCidadao) {
-      final cpf = _cpfController.text.replaceAll(RegExp(r'\D'), '');
-      final senha = _senhaController.text.trim();
-
-      if (cpf.isEmpty || senha.isEmpty) {
-        throw Exception('CPF e senha são obrigatórios!');
-      }
-      if (cpf.length != 11) {
-        throw Exception('CPF inválido! Deve ter 11 dígitos.');
-      }
-
-      body = {'PessoaUsuario': cpf, 'PessoaSenha': senha};
-      url = Uri.parse('${AppConfig.baseUrl}/api/pessoa/login');
-    } else {
-      final usuario = _usuarioController.text.trim().toUpperCase();
-      final senha = _senhaController.text.trim();
-
-      if (usuario.isEmpty || senha.isEmpty) {
-        throw Exception('Usuário e senha são obrigatórios!');
+      if (_isCidadao) {
+        final cpf = _cpfController.text.replaceAll(RegExp(r'\D'), '');
+        final senha = _senhaController.text.trim();
+        if (cpf.isEmpty || senha.isEmpty)
+          throw Exception('CPF e senha são obrigatórios!');
+        body = {'PessoaUsuario': cpf, 'PessoaSenha': senha};
+        url = Uri.parse('${AppConfig.baseUrl}/api/pessoa/login');
+      } else {
+        final usuario = _usuarioController.text.trim().toUpperCase();
+        final senha = _senhaController.text.trim();
+        if (usuario.isEmpty || senha.isEmpty)
+          throw Exception('Usuário e senha são obrigatórios!');
+        body = {'TecnicoUsuario': usuario, 'TecnicoSenha': senha};
+        url = Uri.parse('${AppConfig.baseUrl}/api/tecnico/login');
       }
 
-      body = {'TecnicoUsuario': usuario, 'TecnicoSenha': senha};
-      url = Uri.parse('${AppConfig.baseUrl}/api/tecnico/login');
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode(body),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        // CORREÇÃO: Usando o UserProfile que você já tem
+        final user = UserProfile.fromJson(data);
+
+        if (mounted) {
+          // SALVANDO NO PROVIDER (Importante: verifique se seu ThemeModel realmente gerencia o UserProfile)
+          final themeModel = Provider.of<ThemeModel>(context, listen: false);
+          themeModel.setCurrentUser(user);
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const BottomNavBarScreen()),
+          );
+        }
+      } else {
+        final errorMsg =
+            jsonDecode(response.body)['message'] ??
+            'Erro ${response.statusCode}';
+        throw Exception(errorMsg);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('❌ $e'), backgroundColor: Colors.red.shade700),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
-
-    final response = await http
-        .post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode(body),
-        )
-        .timeout(const Duration(seconds: 15));
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-
-      print('🔍 Resposta da API: $data');
-      print('🔍 Tipo de "usuario": ${data['']}');
-
-      final user = UserProfile.fromJson(data);
-
-      final themeModel = Provider.of<ThemeModel>(context, listen: false);
-      themeModel.setCurrentUser(user);
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => BottomNavBarScreen(),
-        ),
-      );
-    } else {
-      final errorMsg = jsonDecode(response.body)['message'] ?? 'Erro ${response.statusCode}';
-      throw Exception('Login falhou: $errorMsg');
-    }
-  } on TimeoutException {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('❌ Tempo limite excedido. Verifique sua conexão.'),
-        backgroundColor: Colors.red,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('❌ ${e.toString()}'),
-        backgroundColor: Colors.red.shade700,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  } finally {
-    setState(() {
-      _isLoading = false;
-    });
   }
-}
 
   void _toggleMode() {
     _toggleController.forward(from: 0.0);

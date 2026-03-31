@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'models/theme_model.dart';
 import 'screens/login_screen.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'models/theme_model.dart';
+import 'models/user_provider.dart'; // Importe o seu UserProvider aqui
+import 'screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -15,14 +20,18 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeModel()),
+        // CORREÇÃO: Adicionado o UserProvider na árvore global
+        ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: Builder(
         builder: (context) {
+          // O Provider agora consegue encontrar ambos os modelos abaixo deste Builder
           final themeModel = Provider.of<ThemeModel>(context);
           final brightness = themeModel.currentBrightness;
 
           return MaterialApp(
             title: 'Classificador',
+            debugShowCheckedModeBanner: false, // Opcional: limpa a faixa de debug
             themeMode: brightness == Brightness.light
                 ? ThemeMode.light
                 : ThemeMode.dark,

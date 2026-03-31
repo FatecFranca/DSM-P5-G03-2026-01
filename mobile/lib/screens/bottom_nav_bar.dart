@@ -10,9 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-// Chave global para acessar o estado da CallsScreen e forçar o refresh
-final GlobalKey<CallsScreenState> callsScreenKey = GlobalKey<CallsScreenState>();
-
 class BottomNavBarScreen extends StatefulWidget {
   const BottomNavBarScreen({super.key});
 
@@ -28,19 +25,22 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      extendBody: true,
+      extendBody: true, 
       body: IndexedStack(
         index: _selectedIndex,
         children: [
           const HomeScreen(),
-          CallsScreen(key: callsScreenKey), // Passando a chave aqui
+          const CallsScreen(),
           const NotificationsScreen(),
           Consumer<ThemeModel>(
             builder: (context, themeModel, child) {
               final user = themeModel.currentUser;
               return user != null
                   ? ProfileSettingsScreen(user: user)
-                  : const PlaceholderScreen(title: 'Ajustes', icon: Icons.settings);
+                  : const PlaceholderScreen(
+                      title: 'Ajustes',
+                      icon: Icons.settings,
+                    );
             },
           ),
         ],
@@ -50,50 +50,87 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
   }
 
   Widget _buildModernNavBar(ColorScheme cs) {
-    return Stack(
-      alignment: Alignment.bottomCenter,
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          margin: const EdgeInsets.fromLTRB(18, 0, 18, 24),
-          height: 70,
-          decoration: BoxDecoration(
-            color: cs.surface.withOpacity(0.8),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.12),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
+    return Container(
+      padding: const EdgeInsets.only(bottom: 10), // Espaço extra para o respiro
+      child: Stack(
+        alignment: Alignment.bottomCenter,
+        clipBehavior: Clip.none,
+        children: [
+          // Barra Principal
+          Container(
+            margin: const EdgeInsets.fromLTRB(18, 0, 18, 24),
+            height: 70,
+            decoration: BoxDecoration(
+              color: cs.surface.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(28),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildNavItem(0, Icons.grid_view_outlined, Icons.grid_view_rounded, "Início", cs),
-                    _buildNavItem(1, Icons.confirmation_number_outlined, Icons.confirmation_number_rounded, "Chamados", cs),
-                    const SizedBox(width: 48), // Espaço para o botão central
-                    _buildNavItem(2, Icons.notifications_none_rounded, Icons.notifications_rounded, "Avisos", cs),
-                    _buildNavItem(3, Icons.person_outline_rounded, Icons.person_rounded, "Perfil", cs),
-                  ],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      _buildNavItem(
+                        0,
+                        Icons.grid_view_outlined,
+                        Icons.grid_view_rounded,
+                        "Início",
+                        cs,
+                      ),
+                      _buildNavItem(
+                        1,
+                        Icons.confirmation_number_outlined,
+                        Icons.confirmation_number_rounded,
+                        "Chamados",
+                        cs,
+                      ),
+
+                      const SizedBox(
+                        width: 48,
+                      ), // Espaço reservado para o botão de +
+
+                      _buildNavItem(
+                        2,
+                        Icons.notifications_none_rounded,
+                        Icons.notifications_rounded,
+                        "Avisos",
+                        cs,
+                      ),
+                      _buildNavItem(
+                        3,
+                        Icons.person_outline_rounded,
+                        Icons.person_rounded,
+                        "Perfil",
+                        cs,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-        ),
-        Positioned(
-          bottom: 42,
-          child: _buildAddButton(cs),
-        ),
-      ],
+
+          // Botão central flutuante posicionado sobre a barra
+          Positioned(
+            bottom: 45,
+            child: _buildAddButton(cs),
+          ),
+        ],
+      ),
     );
   }
 
@@ -101,43 +138,44 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     return GestureDetector(
       onTap: () async {
         HapticFeedback.heavyImpact();
-        
-        // Espera o usuário terminar de criar o chamado
         await Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const NewCallScreen()),
         );
-
-        // Se o usuário estava na aba de chamados, atualiza a lista na hora
-        if (callsScreenKey.currentState != null) {
-          callsScreenKey.currentState!.loadCalls();
-        }
+        setState(() {});
       },
       child: Container(
         padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(color: cs.surface, shape: BoxShape.circle),
+        decoration: BoxDecoration(
+          color: cs.surface,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: cs.primary.withOpacity(0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Container(
-          width: 56,
-          height: 56,
+          width: 54,
+          height: 54,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [cs.primary, cs.primary.withBlue(220)],
+              colors: [cs.primary, cs.primary.withBlue(255)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(color: cs.primary.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 6))
-            ],
           ),
           child: const Icon(Icons.add_rounded, color: Colors.white, size: 32),
         ),
       ),
     );
   }
-
-  Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label, ColorScheme cs) {
+Widget _buildNavItem(int index, IconData icon, IconData activeIcon, String label, ColorScheme cs) {
     final isSelected = _selectedIndex == index;
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.selectionClick();
@@ -145,14 +183,17 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
       },
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 60,
+        width: 60, // Ajustei a largura para caber melhor em telas pequenas
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut, // Troquei para easeInOut que é padrão e seguro
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
+                // Cria um fundo suave apenas quando selecionado
                 color: isSelected ? cs.primary.withOpacity(0.12) : Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -163,12 +204,17 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
               ),
             ),
             const SizedBox(height: 4),
+            // O texto aparece suavemente
             AnimatedOpacity(
               duration: const Duration(milliseconds: 200),
               opacity: isSelected ? 1.0 : 0.0,
               child: Text(
                 label,
-                style: GoogleFonts.inter(color: cs.primary, fontWeight: FontWeight.bold, fontSize: 10),
+                style: GoogleFonts.inter(
+                  color: cs.primary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 10,
+                ),
               ),
             ),
           ],
@@ -177,6 +223,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
     );
   }
 }
+
 
 class PlaceholderScreen extends StatelessWidget {
   final String title;
@@ -218,3 +265,10 @@ class PlaceholderScreen extends StatelessWidget {
     );
   }
 }
+
+
+
+
+
+
+

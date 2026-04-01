@@ -23,8 +23,14 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Inicia a busca assim que a tela abre
     WidgetsBinding.instance.addPostFrameCallback((_) => _fetchDashboardData());
+  }
+
+  String _getSaudacao() {
+    final hora = DateTime.now().hour;
+    if (hora >= 5 && hora < 12) return "Bom dia";
+    if (hora >= 12 && hora < 18) return "Boa tarde";
+    return "Boa noite";
   }
 
   Future<void> _fetchDashboardData() async {
@@ -40,15 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       final url = Uri.parse('${AppConfig.baseUrl}/api/chamado');
 
-      final response = await http
-          .get(
-            url,
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ${user.token}',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${user.token}',
+        },
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> decodedData = jsonDecode(response.body);
@@ -59,34 +63,19 @@ class _HomeScreenState extends State<HomeScreen> {
         int countA = 0;
 
         for (var item in listaChamados) {
-          // Captura o status real do JSON: 'ChamadoStatus'
-          String status = (item['ChamadoStatus'] ?? '')
-              .toString()
-              .toUpperCase()
-              .trim();
-
-          // Captura o ID do dono: 'PessoaId'
+          String status = (item['ChamadoStatus'] ?? '').toString().toUpperCase().trim();
           final int donoId = item['PessoaId'] ?? 0;
 
-          // Filtra apenas os chamados do usuário logado
           if (donoId == user.id) {
             if (status == 'PENDENTE') {
               countP++;
-            }
-            // Removemos o 'CANCELADO' daqui para ele não ser contado como finalizado
-            else if (status == 'FINALIZADO' || status == 'CONCLUIDO') {
+            } else if (status == 'FINALIZADO' || status == 'CONCLUIDO') {
               countF++;
-            } else if (status == 'EMATENDIMENTO' ||
-                status == 'EM ATENDIMENTO') {
+            } else if (status == 'EMATENDIMENTO' || status == 'EM ATENDIMENTO') {
               countA++;
             }
-
-            // Opcional: Se você quiser contar cancelados em uma variável separada no futuro,
-            // basta adicionar um: else if (status == 'CANCELADO') { countC++; }
           }
         }
-
-        debugPrint('📈 SUCESSO -> Pendentes: $countP | Finalizados: $countF');
 
         if (mounted) {
           setState(() {
@@ -105,12 +94,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Captura as cores do tema atual (Claro ou Escuro)
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    final user = Provider.of<ThemeModel>(context).currentUser;
+    final String nomeUsuario = user?.name.split(' ').first ?? "Usuário";
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FF),
+      // Usa a cor de fundo definida no tema
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          "Início",
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        title: Text(
+          "Dashboard",
+          style: TextStyle(
+            color: colorScheme.onSurface, // Adapta cor do texto da AppBar
+            fontWeight: FontWeight.bold
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -126,17 +126,36 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Resumo de Atividades",
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                    Text(
+                      "${_getSaudacao()}, $nomeUsuario! 👋",
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface, // Adapta para branco no dark
+                      ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 5),
+                    Text(
+                      "Aqui está o resumo dos seus chamados.",
+                      style: TextStyle(fontSize: 14, color: colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 25),
 
-                    // Layout inspirado no seu print
+                    Text(
+                      "Resumo de Atividades",
+                      style: TextStyle(
+                        fontSize: 16, 
+                        color: colorScheme.onSurfaceVariant, 
+                        fontWeight: FontWeight.w500
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+
                     Row(
                       children: [
                         Expanded(
                           child: _buildSquareCard(
+                            context,
                             "Pendentes",
                             pendentes,
                             Colors.orange,
@@ -146,9 +165,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(width: 15),
                         Expanded(
                           child: _buildSquareCard(
-                            "Em Ajuste",
+                            context,
+                            "Em Atendimento",
                             emAtendimento,
-                            Colors.indigo,
+                            Colors.indigoAccent,
                             Icons.edit_note,
                           ),
                         ),
@@ -156,10 +176,29 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     const SizedBox(height: 15),
                     _buildWideCard(
+                      context,
                       "Finalizados",
                       finalizados,
                       Colors.green,
                       Icons.check_circle_outline,
+                    ),
+                    
+                    const SizedBox(height: 35),
+                    Text(
+                      "Ações Rápidas",
+                      style: TextStyle(
+                        fontSize: 18, 
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    
+                    _buildActionButton(
+                      context,
+                      "Abrir Novo Chamado", 
+                      Icons.add_circle_outline,
+                      () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NewCallScreen()))
                     ),
                   ],
                 ),
@@ -168,14 +207,20 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildSquareCard(String title, int value, Color color, IconData icon) {
+  // --- WIDGETS ADAPTÁVEIS ---
+
+  Widget _buildSquareCard(BuildContext context, String title, int value, Color color, IconData icon) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor, // Usa a cor de card do tema (cinza escuro no Dark)
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
+          BoxShadow(
+            color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.3 : 0.02), 
+            blurRadius: 10
+          )
         ],
       ),
       child: Column(
@@ -186,32 +231,36 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             value.toString().padLeft(2, '0'),
             style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: color.withOpacity(0.8),
+              fontSize: 32, 
+              fontWeight: FontWeight.bold, 
+              color: color.withOpacity(0.9)
             ),
           ),
           Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.black54,
-            ),
+            title, 
+            style: TextStyle(
+              fontWeight: FontWeight.w500, 
+              color: theme.colorScheme.onSurfaceVariant
+            )
           ),
         ],
       ),
     );
   }
 
-  Widget _buildWideCard(String title, int value, Color color, IconData icon) {
+  Widget _buildWideCard(BuildContext context, String title, int value, Color color, IconData icon) {
+    final theme = Theme.of(context);
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(25),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10),
+          BoxShadow(
+            color: Colors.black.withOpacity(theme.brightness == Brightness.dark ? 0.3 : 0.02), 
+            blurRadius: 10
+          )
         ],
       ),
       child: Column(
@@ -222,44 +271,49 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             value.toString().padLeft(2, '0'),
             style: TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: color.withOpacity(0.8),
+              fontSize: 32, 
+              fontWeight: FontWeight.bold, 
+              color: color.withOpacity(0.9)
             ),
           ),
           Text(
-            title,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.black54,
-            ),
+            title, 
+            style: TextStyle(
+              fontWeight: FontWeight.w500, 
+              color: theme.colorScheme.onSurfaceVariant
+            )
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, VoidCallback onTap) {
+  Widget _buildActionButton(BuildContext context, String label, IconData icon, VoidCallback onTap) {
+    final theme = Theme.of(context);
     return GestureDetector(
-      onTap: onTap, // Ativa o clique
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         decoration: BoxDecoration(
-          color: Colors.indigo.withOpacity(0.05),
+          // No Dark mode, o fundo do botão fica levemente mais claro que o fundo da tela
+          color: theme.colorScheme.primary.withOpacity(0.1),
           borderRadius: BorderRadius.circular(15),
         ),
         child: Row(
           children: [
-            Icon(icon, color: Colors.indigo),
+            Icon(icon, color: theme.colorScheme.primary),
             const SizedBox(width: 15),
             Expanded(
               child: Text(
-                label,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+                label, 
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface
+                )
+              )
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant),
           ],
         ),
       ),

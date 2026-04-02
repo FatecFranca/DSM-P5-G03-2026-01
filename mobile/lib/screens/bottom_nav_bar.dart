@@ -3,7 +3,7 @@ import 'package:classificador/models/theme_model.dart';
 import 'package:classificador/screens/calls_screen.dart';
 import 'package:classificador/screens/home_screen.dart';
 import 'package:classificador/screens/new_call_screen.dart';
-import 'package:classificador/screens/notifications_screen.dart';
+import 'package:classificador/screens/manual_screen.dart';
 import 'package:classificador/screens/profile_settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -31,7 +31,7 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
         children: [
           const HomeScreen(),
           const CallsScreen(),
-          const NotificationsScreen(),
+          const ManualScreen(),
           Consumer<ThemeModel>(
             builder: (context, themeModel, child) {
               final user = themeModel.currentUser;
@@ -105,9 +105,9 @@ class _BottomNavBarScreenState extends State<BottomNavBarScreen> {
 
                       _buildNavItem(
                         2,
-                        Icons.notifications_none_rounded,
-                        Icons.notifications_rounded,
-                        "Avisos",
+                        Icons.help_center_outlined,
+                        Icons.help_center_rounded,
+                        "Manual",
                         cs,
                       ),
                       _buildNavItem(

@@ -17,6 +17,17 @@ class CallsScreen extends StatefulWidget {
 }
 
 class CallsScreenState extends State<CallsScreen> {
+  List<CallModel> _filteredCalls = []; // Lista que será exibida
+  String _searchQuery = "";
+  String _selectedStatus = "TODOS";
+  final List<String> _statusOptions = [
+    "TODOS",
+    "PENDENTE",
+    "EM ATENDIMENTO",
+    "CONCLUIDO",
+    "CANCELADO",
+  ];
+
   UserProfile? _currentUser;
   List<CallModel> _calls = [];
   bool _isLoading = true;
@@ -27,10 +38,35 @@ class CallsScreenState extends State<CallsScreen> {
     loadCalls();
   }
 
+  // Método para aplicar os filtros de status e busca
+  void _applyFilters() {
+    setState(() {
+      _filteredCalls = _calls.where((call) {
+        // 1. Normaliza o status selecionado e o do chamado (remove espaços e passa para UpperCase)
+        final selected = _selectedStatus.replaceAll(" ", "").toUpperCase();
+        final currentCallStatus = call.status.replaceAll(" ", "").toUpperCase();
+
+        final matchesStatus =
+            _selectedStatus == "TODOS" || currentCallStatus == selected;
+
+        // 2. Filtro de busca por texto ou ID
+        final matchesSearch =
+            call.descricaoInicial.toLowerCase().contains(
+              _searchQuery.toLowerCase(),
+            ) ||
+            call.id.toString().contains(_searchQuery);
+
+        return matchesStatus && matchesSearch;
+      }).toList();
+    });
+  }
+
   // Método público para permitir refresh externo
   Future<void> loadCalls() async {
     if (!mounted) return;
     setState(() => _isLoading = true);
+
+    // O BLOCO QUE ESTAVA AQUI FOI REMOVIDO POIS ESTAVA FORA DE ORDEM
 
     try {
       final themeModel = Provider.of<ThemeModel>(context, listen: false);
@@ -56,10 +92,15 @@ class CallsScreenState extends State<CallsScreen> {
         final data = jsonDecode(response.body);
         if (data is Map && data.containsKey('data')) {
           final List<dynamic> chamadosJson = data['data'] as List<dynamic>;
+
           setState(() {
+            // 1. Converte o JSON para a lista principal
             _calls = chamadosJson
                 .map((json) => CallModel.fromJson(json))
                 .toList();
+
+            // 2. Aplica o filtro para popular a lista _filteredCalls
+            _applyFilters();
           });
         }
       }
@@ -331,20 +372,31 @@ class CallsScreenState extends State<CallsScreen> {
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
-      body: RefreshIndicator(
-        onRefresh: loadCalls,
-        color: cs.primary,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : _calls.isEmpty
-            ? _buildEmptyState()
-            : ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
-                itemCount: _calls.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) =>
-                    _buildCallCard(context, _calls[index]),
-              ),
+      body: Column(
+        // Adicionado Column para separar a barra da lista
+        children: [
+          _buildFilterBar(cs), // Adicionada a barra de filtros no topo
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: loadCalls,
+              color: cs.primary,
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _filteredCalls
+                        .isEmpty // Usar a lista filtrada aqui
+                  ? _buildEmptyState()
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
+                      itemCount: _filteredCalls.length, // Usar filtered
+                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) => _buildCallCard(
+                        context,
+                        _filteredCalls[index],
+                      ), // Usar filtered
+                    ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -480,6 +532,65 @@ class CallsScreenState extends State<CallsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFilterBar(ColorScheme cs) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: cs.surface,
+      child: Column(
+        children: [
+          // Barra de Pesquisa
+          TextField(
+            onChanged: (value) {
+              _searchQuery = value;
+              _applyFilters();
+            },
+            decoration: InputDecoration(
+              hintText: 'Buscar por título ou ID...',
+              prefixIcon: const Icon(Icons.search),
+              filled: true,
+              fillColor: cs.surfaceVariant.withOpacity(0.3),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Filtro de Status (Chips Horizontais)
+          SizedBox(
+            height: 40,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: _statusOptions.map((status) {
+                final isSelected = _selectedStatus == status;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(
+                      status,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isSelected ? Colors.white : cs.onSurface,
+                      ),
+                    ),
+                    selected: isSelected,
+                    selectedColor: cs.primary,
+                    onSelected: (selected) {
+                      setState(() {
+                        _selectedStatus = status;
+                        _applyFilters();
+                      });
+                    },
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }

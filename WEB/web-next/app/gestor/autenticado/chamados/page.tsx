@@ -24,7 +24,13 @@ import {
   Briefcase,
   AlertTriangle,
   TrendingUp,
-  BarChart3
+  BarChart3,
+  ListTodo,
+  BookCheck,
+  Shield,
+  ShieldAlert,
+  ShieldBan,
+  ShieldX
 } from "lucide-react"
 import { listarChamados, getEstatisticas, type Chamado, type ChamadoFilters, type Estatisticas } from "@/lib/chamado-service"
 import { format } from "date-fns"
@@ -41,7 +47,7 @@ function StatusBadge({ status }: { status: string }) {
     CANCELADO: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400',
     RECUSADO: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
   };
-  
+
   const icons = {
     PENDENTE: <Clock size={14} className="mr-1" />,
     ANALISADO: <Search size={14} className="mr-1" />,
@@ -49,7 +55,8 @@ function StatusBadge({ status }: { status: string }) {
     EMATENDIMENTO: <PlayCircle size={14} className="mr-1" />,
     CONCLUIDO: <CheckCircle size={14} className="mr-1" />,
     CANCELADO: <XCircle size={14} className="mr-1" />,
-    RECUSADO: <AlertCircle size={14} className="mr-1" />
+    RECUSADO: <ShieldBan size={14} className="mr-1" />,
+    FALTAINFORMACAO: <AlertCircle size={14} className="mr-1" />
   };
 
   const labels = {
@@ -59,7 +66,8 @@ function StatusBadge({ status }: { status: string }) {
     EMATENDIMENTO: 'Em Atendimento',
     CONCLUIDO: 'Concluído',
     CANCELADO: 'Cancelado',
-    RECUSADO: 'Recusado'
+    RECUSADO: 'Recusado',
+    FALTAINFORMACAO: 'Falta Informação'
   };
 
   return (
@@ -73,7 +81,7 @@ function StatusBadge({ status }: { status: string }) {
 // Componente de Urgência Badge
 function UrgenciaBadge({ urgencia }: { urgencia?: string }) {
   if (!urgencia) return null;
-  
+
   const styles = {
     BAIXA: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
     MEDIA: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
@@ -116,12 +124,12 @@ export default function ChamadosPage() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const [chamadosResponse, stats] = await Promise.all([
         listarChamados(filters),
         getEstatisticas('30d')
       ]);
-      
+
       setChamados(chamadosResponse.data);
       setPaginacao(chamadosResponse.paginacao);
       setEstatisticas(stats);
@@ -152,8 +160,8 @@ export default function ChamadosPage() {
   };
 
   // Filtrar localmente enquanto o backend não tem busca
-  const chamadosFiltrados = chamados.filter(c => 
-    c.ChamadoTitulo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const chamadosFiltrados = chamados.filter(c =>
+    (c.ChamadoTitulo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.Pessoa.PessoaNome.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -211,6 +219,26 @@ export default function ChamadosPage() {
 
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
             <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Analisados</span>
+              <BookCheck size={18} className="text-green-600 dark:text-purple-400" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {estatisticas.porStatus.ANALISADO || 0}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Atribuídos</span>
+              <ListTodo size={18} className="text-green-600 dark:text-green-400" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {estatisticas.porStatus.ATRIBUIDO || 0}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+            <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-gray-500 dark:text-gray-400">Em Atendimento</span>
               <PlayCircle size={18} className="text-purple-600 dark:text-purple-400" />
             </div>
@@ -228,7 +256,39 @@ export default function ChamadosPage() {
               {estatisticas.porStatus.CONCLUIDO || 0}
             </p>
           </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Recusados</span>
+              <ShieldBan size={18} className="text-green-600 dark:text-red-400" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {estatisticas.porStatus.RECUSADO || 0}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Cancelados</span>
+              <XCircle size={18} className="text-green-600 dark:text-red-400" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {estatisticas.porStatus.CANCELADO || 0}
+            </p>
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Falta Informação</span>
+              <AlertCircle size={18} className="text-green-600 dark:text-yellow-400" />
+            </div>
+            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              {estatisticas.porStatus.CANCELADO || 0}
+            </p>
+          </div>
+          
         </div>
+
       )}
 
       {/* Filtros */}
@@ -365,36 +425,36 @@ export default function ChamadosPage() {
                         <UrgenciaBadge urgencia={chamado.ChamadoUrgencia} />
                       )}
                     </div>
-                    
+
                     <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">
                       {chamado.ChamadoTitulo}
                     </h3>
-                    
+
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                       <span className="flex items-center gap-1">
                         <Users size={14} />
                         {chamado.Pessoa.PessoaNome}
                       </span>
-                      
+
                       {chamado.TipoSuporte && (
                         <span className="flex items-center gap-1">
                           <Briefcase size={14} />
                           {chamado.TipoSuporte.TipSupNom}
                         </span>
                       )}
-                      
+
                       {chamado.Equipe && (
                         <span className="flex items-center gap-1">
                           <Users size={14} />
                           {chamado.Equipe.EquipeNome}
                         </span>
                       )}
-                      
+
                       <span className="flex items-center gap-1">
                         <Calendar size={14} />
                         {formatDate(chamado.ChamadoDtAbertura)}
                       </span>
-                      
+
                       {chamado._count && (
                         <span className="flex items-center gap-1">
                           <Clock size={14} />

@@ -139,23 +139,27 @@ export default function GestorAutenticadoLayout({
       icon: <BadgeCheck size={20} />,
       adminOnly: true
     },
+    /*
     {
       title: "Relatórios",
       href: "/gestor/autenticado/relatorios",
       icon: <BarChart3 size={20} />,
       adminOnly: true
     },
+    */
     {
       title: "Departamentos",
       href: "/gestor/autenticado/departamentos",
       icon: <Briefcase size={20} />
     },
+    /*
     {
       title: "Histórico",
       href: "/gestor/autenticado/historico",
       icon: <Clock size={20} />,
       adminOnly: true
     }
+    */
   ]
 
   // Filtrar itens do menu baseado no nível do gestor

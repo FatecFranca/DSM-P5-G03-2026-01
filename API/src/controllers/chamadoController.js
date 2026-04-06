@@ -126,12 +126,14 @@ class ChamadoController {
                 ChamadoTitulo,
                 ChamadoDescricaoInicial,
                 ChamadoPrioridade,
-                ChamadoUrgencia,
-                ChamadoStatus
+                ChamadoUrgencia
             } = req.body;
 
             const usuarioLogado = req.usuario;
             const chamadoId = parseInt(id);
+
+            // Preparar dados para atualização
+            const dadosAtualizacao = {};
 
             if (isNaN(chamadoId)) {
                 return res.status(400).json({ error: 'ID do chamado inválido' });
@@ -173,17 +175,20 @@ class ChamadoController {
 
                 // Pessoa não pode alterar campos restritos
                 if (TipSupId !== undefined || EquipeId !== undefined || ChamadoPrioridade !== undefined ||
-                    ChamadoUrgencia !== undefined || ChamadoStatus !== undefined) {
+                    ChamadoUrgencia !== undefined) {
                     return res.status(403).json({
                         error: 'Você não pode alterar tipo de suporte, equipe, prioridade, urgência ou status do chamado'
                     });
                 }
 
                 // Caso o status já não seja mais pendentes, não se pode alterar
-                if (chamadoExistente.ChamadoStatus !== 'PENDENTE') {
+                if (chamadoExistente.ChamadoStatus !== 'PENDENTE' && chamadoExistente.ChamadoStatus !== 'FALTAINFORMACAO') {
                     return res.status(403).json({
-                        error: 'Chamado jáz não está mais pendente, não permitido alterar.'
+                        error: 'Chamado já não está mais pendente, não permitido alterar.'
                     })
+                } else if (chamadoExistente.ChamadoStatus === 'FALTAINFORMACAO') {
+                    // Após alterar a descrição inicial, o status volta para pendente para nova análise
+                    dadosAtualizacao.ChamadoStatus = 'PENDENTE';
                 }
             }
 
@@ -204,9 +209,6 @@ class ChamadoController {
                     error: 'Você não tem permissão para alterar este chamado'
                 });
             }
-
-            // Preparar dados para atualização
-            const dadosAtualizacao = {};
 
             // Validar e adicionar campos de acordo com o tipo de acesso
             if (TipSupId !== undefined && tipoAcesso === 'GESTOR') {
@@ -246,18 +248,35 @@ class ChamadoController {
                         });
                     }
                 }
+
                 dadosAtualizacao.EquipeId = EquipeId ? parseInt(EquipeId) : null;
+            }
+
+            // Veirificar se o status está como em antendimento, se sim ser obrigatório a equipe
+            if (chamadoExistente.ChamadoStatus === 'EMATENDIMENTO' && !dadosAtualizacao.EquipeId && !chamadoExistente.EquipeId) {
+                return res.status(400).json({
+                    error: 'Chamados em atendimento devem ter uma equipe atribuída'
+                });
             }
 
             if (ChamadoTitulo !== undefined) {
                 if (!ChamadoTitulo.trim()) {
-                    return res.status(400).json({ error: 'Título do chamado não pode ser vazio' });
+                    return res.status(400).json({ error: 'Título do chamado não pode ser vazio, se for desejado inseri-lo' });
                 }
                 dadosAtualizacao.ChamadoTitulo = ChamadoTitulo.trim();
             }
 
-            if (ChamadoDescricaoInicial !== undefined) {
-                dadosAtualizacao.ChamadoDescricaoInicial = ChamadoDescricaoInicial?.trim() || null;
+            console.log('ChamadoDescricaoInicial = ', ChamadoDescricaoInicial);
+            if (ChamadoDescricaoInicial !== undefined && ChamadoDescricaoInicial.trim() !== '') {
+                // Gestor altera a descrição formatada
+                if (tipoAcesso === 'GESTOR') {
+                    dadosAtualizacao.ChamadoDescricaoFormatada = ChamadoDescricaoInicial.trim();
+                } else if (chamadoExistente.ChamadoStatus !== 'PENDENTE' && chamadoExistente.ChamadoStatus !== 'FALTAINFORMACAO') {
+                    // Somente pessoa que abriu o chamado pode alterar a descrição inicial, e somente se o chamado ainda estiver pendente ou com falta de informação
+                    dadosAtualizacao.ChamadoDescricaoInicial = ChamadoDescricaoInicial.trim();
+                }
+            } else {
+                return res.status(400).json({ error: 'Descrição do chamado é obrigatória' });
             }
 
             if (ChamadoPrioridade !== undefined && tipoAcesso !== 'PESSOA') {
@@ -278,29 +297,6 @@ class ChamadoController {
                     });
                 }
                 dadosAtualizacao.ChamadoUrgencia = ChamadoUrgencia;
-            }
-
-            if (ChamadoStatus !== undefined && tipoAcesso !== 'PESSOA') {
-                const statusValidos = ['PENDENTE', 'ANALISADO', 'ATRIBUIDO', 'EMATENDIMENTO', 'CONCLUIDO', 'CANCELADO', 'RECUSADO'];
-                if (!statusValidos.includes(ChamadoStatus)) {
-                    return res.status(400).json({
-                        error: 'Status inválido'
-                    });
-                }
-
-                // Se for concluir, adicionar data de encerramento
-                if (ChamadoStatus === 'CONCLUIDO' && chamadoExistente.ChamadoStatus !== 'CONCLUIDO') {
-                    dadosAtualizacao.ChamadoDtEncerramento = new Date();
-                }
-
-                // Se for cancelar/recusar, adicionar data de encerramento
-                if ((ChamadoStatus === 'CANCELADO' || ChamadoStatus === 'RECUSADO') &&
-                    chamadoExistente.ChamadoStatus !== 'CANCELADO' &&
-                    chamadoExistente.ChamadoStatus !== 'RECUSADO') {
-                    dadosAtualizacao.ChamadoDtEncerramento = new Date();
-                }
-
-                dadosAtualizacao.ChamadoStatus = ChamadoStatus;
             }
 
             // Verificar se há dados para atualizar
@@ -514,6 +510,8 @@ class ChamadoController {
                 prisma.chamado.count({ where: filtro })
             ]);
 
+            //console.log('Chamados encontrados:', chamados, 'Total:', chamados.length);
+
             res.status(200).json({
                 data: chamados,
                 paginacao: {
@@ -654,6 +652,8 @@ class ChamadoController {
                 });
             }
 
+            //console.log('Chamado encontrado:', chamado);
+
             res.status(200).json({
                 data: chamado
             });
@@ -732,7 +732,7 @@ class ChamadoController {
                 where: { ChamadoId: chamadoId },
                 data: {
                     EquipeId: parseInt(EquipeId),
-                    ChamadoStatus: chamado.ChamadoStatus === 'PENDENTE' ? 'ANALISADO' : chamado.ChamadoStatus
+                    ChamadoStatus: 'ATRIBUIDO'
                 },
                 include: {
                     Equipe: {
@@ -759,7 +759,7 @@ class ChamadoController {
     async alterarStatus(req, res) {
         try {
             const { id } = req.params;
-            const { ChamadoStatus } = req.body;
+            const { ChamadoStatus, ChamadoDescricaoFormatada, ChamadoEquipeId } = req.body;
             const usuarioLogado = req.usuario;
 
             const chamadoId = parseInt(id);
@@ -880,6 +880,55 @@ class ChamadoController {
                 dadosAtualizacao.ChamadoDtEncerramento = new Date();
             }
 
+            // Se for recusar, informar motivo na descrição formatada
+            if (ChamadoStatus === 'RECUSADO') {
+                if (!ChamadoDescricaoFormatada || !ChamadoDescricaoFormatada.trim()) {
+                    return res.status(400).json({
+                        error: 'Motivo da recusa é obrigatório'
+                    });
+                }
+                dadosAtualizacao.ChamadoDescricaoFormatada = ChamadoDescricaoFormatada.trim();
+            }
+
+            // Se for atribuir a equipe, validar equipe e adicionar
+            if (ChamadoStatus === 'ATRIBUIDO') {
+                if (!ChamadoEquipeId) {
+                    return res.status(400).json({
+                        error: 'ID da equipe é obrigatório para atribuir o chamado'
+                    });
+                }
+                const equipe = await prisma.equipe.findFirst({
+                    where: {
+                        EquipeId: parseInt(ChamadoEquipeId),
+                        UnidadeId: chamado.UnidadeId,
+                        EquipeStatus: 'ATIVA'
+                    }
+                });
+                if (!equipe) {
+                    return res.status(404).json({
+                        error: 'Equipe não encontrada ou não pertence à unidade'
+                    });
+                }
+                dadosAtualizacao.EquipeId = parseInt(ChamadoEquipeId);
+                dadosAtualizacao.ChamadoStatus = 'ATRIBUIDO';
+            }
+
+            // Se for voltar para  pendente, remover equipe atribuída, titulo, descricao formatada, prioridade e urgencia e data planejada
+            if (ChamadoStatus === 'PENDENTE') {
+                dadosAtualizacao.EquipeId = null;
+                dadosAtualizacao.ChamadoDtPlanejada = null;
+                dadosAtualizacao.ChamadoPrioridade = null;
+                dadosAtualizacao.ChamadoUrgencia = null;
+                dadosAtualizacao.ChamadoDescricaoFormatada = null;
+                dadosAtualizacao.TipSupId = null;
+                dadosAtualizacao.ChamadoTitulo = null;
+            }
+
+            // Se for voltar para analisado, remover equipe atribuída
+            if (ChamadoStatus === 'ANALISADO') {
+                dadosAtualizacao.EquipeId = null;
+            }
+
             // Atualizar chamado
             const chamadoAtualizado = await prisma.chamado.update({
                 where: { ChamadoId: chamadoId },
@@ -971,7 +1020,7 @@ class ChamadoController {
                 totalChamados,
                 porStatus,
                 porUrgencia,
-                tempoMedioResolucao
+                chamadosConcluidos
             ] = await Promise.all([
                 // Total de chamados no período
                 prisma.chamado.count({ where: filtro }),
@@ -993,20 +1042,44 @@ class ChamadoController {
                     _count: true
                 }),
 
-                // Tempo médio de resolução (chamados concluídos)
-                prisma.chamado.aggregate({
+                // Buscar chamados concluídos para calcular tempo médio
+                prisma.chamado.findMany({
                     where: {
                         ...filtro,
                         ChamadoStatus: 'CONCLUIDO',
                         ChamadoDtEncerramento: { not: null }
                     },
-                    _avg: {
-                        // Calcular diferença em horas
-                        // Isso é um exemplo - pode precisar de ajustes
+                    select: {
+                        ChamadoDtAbertura: true,
+                        ChamadoDtEncerramento: true
                     }
                 })
             ]);
 
+            // Calcular tempo médio de resolução (em horas)
+            let tempoMedioResolucao = null;
+            if (chamadosConcluidos.length > 0) {
+                const totalHoras = chamadosConcluidos.reduce((acc, chamado) => {
+                    const diffHoras = (chamado.ChamadoDtEncerramento - chamado.ChamadoDtAbertura) / (1000 * 60 * 60);
+                    return acc + diffHoras;
+                }, 0);
+                tempoMedioResolucao = totalHoras / chamadosConcluidos.length;
+            }
+
+            // Calcular prioridade média
+            let prioridadeMedia = null;
+            const prioridadeResult = await prisma.chamado.aggregate({
+                where: {
+                    ...filtro,
+                    ChamadoPrioridade: { not: null }
+                },
+                _avg: {
+                    ChamadoPrioridade: true
+                }
+            });
+            prioridadeMedia = prioridadeResult._avg.ChamadoPrioridade;
+
+            // Retornar EXATAMENTE a mesma estrutura que antes
             res.status(200).json({
                 data: {
                     periodo: {

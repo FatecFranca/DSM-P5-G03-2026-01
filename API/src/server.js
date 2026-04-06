@@ -22,7 +22,7 @@ app.use(cors(corsOptions));
 // Middleware para cookies
 app.use(cookieParser());
 
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(express.json({ limit: '10mb' }));

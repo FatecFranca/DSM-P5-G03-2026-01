@@ -137,7 +137,7 @@ model Chamado {
   ChamadoDtEncerramento     DateTime?
   ChamadoPrioridade         Int?            // De 1 a 10
   ChamadoUrgencia           ChamadoUrgencia?
-  ChamadoStatus             ChamadoStatus?
+  ChamadoStatus             ChamadoStatus?  @default(PENDENTE)
 
   TipoSuporte               TipoSuporte?        @relation(fields: [TipSupId], references: [TipSupId])
   Pessoa                    Pessoa              @relation(fields: [PessoaId], references: [PessoaId])

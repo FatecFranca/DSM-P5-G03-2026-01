@@ -37,10 +37,4 @@ class UserProfile {
       token: data['token'],
     );
   }
-
-  // Object? get pessoaId => null;
-
-  // Object? get tecnicoId => null;
-
-  // String? get nome => null;
 }

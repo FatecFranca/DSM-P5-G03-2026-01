@@ -137,24 +137,36 @@ class _LoginScreenState extends State<LoginScreen>
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
 
-        // CORREÇÃO: Usando o UserProfile que você já tem
-        final user = UserProfile.fromJson(data);
+        // ✅ Obtém o usuário com base na resposta da API
+var user = UserProfile.fromJson(data);
 
-        if (mounted) {
-          // SALVANDO NO PROVIDER (Importante: verifique se seu ThemeModel realmente gerencia o UserProfile)
-          final themeModel = Provider.of<ThemeModel>(context, listen: false);
-          themeModel.setCurrentUser(user);
+// ✅ Define o role com base no endpoint usado (não na API)
+user = UserProfile(
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  phone: user.phone,
+  cpfOrId: user.cpfOrId,
+  role: _isCidadao ? 'citizen' : 'technician', // 👈 Define o role aqui
+  unitName: user.unitName,
+  unidadeId: user.unidadeId,
+  token: user.token,
+);
 
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const BottomNavBarScreen()),
-          );
-        }
-      } else {
+if (mounted) {
+  final themeModel = Provider.of<ThemeModel>(context, listen: false);
+  themeModel.setCurrentUser(user);
+
+  Navigator.pushReplacement(
+    context,
+    MaterialPageRoute(builder: (context) => const BottomNavBarScreen()),
+  );
+}else {
         final errorMsg =
             jsonDecode(response.body)['message'] ??
             'Erro ${response.statusCode}';
         throw Exception(errorMsg);
+      }
       }
     } catch (e) {
       if (mounted) {

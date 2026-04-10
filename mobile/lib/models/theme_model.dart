@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'user_model.dart'; 
+import 'user_model.dart';
+import 'user_type.dart'; // Importe o enum UserType
 
 enum ThemeModeOption { system, light, dark }
 
@@ -8,11 +9,20 @@ class ThemeModel extends ChangeNotifier {
   late SharedPreferences _prefs;
   ThemeModeOption _themeMode = ThemeModeOption.system;
   double _fontSizeScale = 1.0;
-  UserProfile? _currentUser; 
+  UserProfile? _currentUser;
 
   ThemeModeOption get themeMode => _themeMode;
   double get fontSizeScale => _fontSizeScale;
-  UserProfile? get currentUser => _currentUser; 
+  UserProfile? get currentUser => _currentUser;
+
+  // ✅ NOVO: Getter que converte role para UserType
+  UserType get userType {
+    if (_currentUser?.role == 'technician') {
+      return UserType.technician;
+    } else {
+      return UserType.citizen;
+    }
+  }
 
   ThemeModel() {
     _init();
@@ -43,9 +53,14 @@ class ThemeModel extends ChangeNotifier {
 
   void setCurrentUser(UserProfile user) {
     _currentUser = user;
-   
+
     debugPrint('✅ ThemeModel: Usuário logado! ID: ${user.id}, Role: ${user.role}');
-  
+
+    notifyListeners();
+  }
+
+  void clearCurrentUser() {
+    _currentUser = null;
     notifyListeners();
   }
 

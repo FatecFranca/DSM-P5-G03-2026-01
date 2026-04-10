@@ -5,9 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../models/call_model.dart';
-import '../models/theme_model.dart';
-import '../models/user_model.dart';
+import '../../models/call_model.dart';
+import '../../models/theme_model.dart';
+import '../../models/user_model.dart';
 
 class CallsScreen extends StatefulWidget {
   const CallsScreen({super.key});
@@ -363,7 +363,7 @@ class CallsScreenState extends State<CallsScreen> {
     final cs = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: cs.surfaceVariant.withOpacity(0.2),
+      backgroundColor: cs.surfaceContainerHighest.withOpacity(0.2),
       appBar: AppBar(
         title: Text(
           'Meus Chamados',
@@ -388,7 +388,7 @@ class CallsScreenState extends State<CallsScreen> {
                   : ListView.separated(
                       padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
                       itemCount: _filteredCalls.length, // Usar filtered
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
+                      separatorBuilder: (_, _) => const SizedBox(height: 12),
                       itemBuilder: (context, index) => _buildCallCard(
                         context,
                         _filteredCalls[index],
@@ -552,7 +552,7 @@ class CallsScreenState extends State<CallsScreen> {
               hintText: 'Buscar por título ou ID...',
               prefixIcon: const Icon(Icons.search),
               filled: true,
-              fillColor: cs.surfaceVariant.withOpacity(0.3),
+              fillColor: cs.surfaceContainerHighest.withOpacity(0.3),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,

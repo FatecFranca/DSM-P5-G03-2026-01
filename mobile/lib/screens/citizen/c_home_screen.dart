@@ -1,11 +1,10 @@
-import 'package:classificador/screens/calls_screen.dart';
-import 'package:classificador/screens/new_call_screen.dart';
+import 'package:classificador/screens/citizen/new_call_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../models/theme_model.dart';
-import '../config.dart';
+import '../../models/theme_model.dart';
+import '../../config.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

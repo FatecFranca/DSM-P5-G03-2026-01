@@ -1,10 +1,10 @@
 import 'dart:ui';
 import 'package:classificador/models/theme_model.dart';
-import 'package:classificador/screens/calls_screen.dart';
-import 'package:classificador/screens/home_screen.dart';
-import 'package:classificador/screens/new_call_screen.dart';
-import 'package:classificador/screens/manual_screen.dart';
-import 'package:classificador/screens/profile_settings_screen.dart';
+import 'package:classificador/screens/citizen/c_calls_screen.dart';
+import 'package:classificador/screens/citizen/c_home_screen.dart';
+import 'package:classificador/screens/citizen/new_call_screen.dart';
+import 'package:classificador/screens/citizen/manual_screen.dart';
+import 'package:classificador/screens/shared/profile_settings_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';

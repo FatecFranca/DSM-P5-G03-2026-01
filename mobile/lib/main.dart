@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'models/theme_model.dart';
-import 'screens/login_screen.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'models/theme_model.dart';
+import 'screens/shared/login_screen.dart';
 import 'models/user_provider.dart'; // Importe o seu UserProvider aqui
-import 'screens/login_screen.dart';
 
 void main() {
   runApp(const MyApp());

@@ -2,14 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:classificador/config.dart';
-import 'package:classificador/screens/bottom_nav_bar.dart';
+import 'package:classificador/screens/shared/components/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
-import '../models/theme_model.dart';
-import '../models/user_model.dart';
+import '../../models/theme_model.dart';
+import '../../models/user_model.dart';
 
 // === Formatação para maiúsculas ===
 class UpperCaseTextFormatter extends TextInputFormatter {
@@ -41,12 +41,15 @@ class CpfFormatter extends TextInputFormatter {
     } else if (text.length <= 11) {
       // Simplifiquei a lógica para brevidade, mantendo a funcionalidade
       String formatted = text;
-      if (text.length > 3)
+      if (text.length > 3) {
         formatted = '${text.substring(0, 3)}.${text.substring(3)}';
-      if (text.length > 6)
+      }
+      if (text.length > 6) {
         formatted = '${formatted.substring(0, 7)}.${text.substring(6)}';
-      if (text.length > 9)
+      }
+      if (text.length > 9) {
         formatted = '${formatted.substring(0, 11)}-${text.substring(9)}';
+      }
       return TextEditingValue(
         text: formatted,
         selection: TextSelection.collapsed(offset: formatted.length),
@@ -108,15 +111,17 @@ class _LoginScreenState extends State<LoginScreen>
       if (_isCidadao) {
         final cpf = _cpfController.text.replaceAll(RegExp(r'\D'), '');
         final senha = _senhaController.text.trim();
-        if (cpf.isEmpty || senha.isEmpty)
+        if (cpf.isEmpty || senha.isEmpty) {
           throw Exception('CPF e senha são obrigatórios!');
+        }
         body = {'PessoaUsuario': cpf, 'PessoaSenha': senha};
         url = Uri.parse('${AppConfig.baseUrl}/api/pessoa/login');
       } else {
         final usuario = _usuarioController.text.trim().toUpperCase();
         final senha = _senhaController.text.trim();
-        if (usuario.isEmpty || senha.isEmpty)
+        if (usuario.isEmpty || senha.isEmpty) {
           throw Exception('Usuário e senha são obrigatórios!');
+        }
         body = {'TecnicoUsuario': usuario, 'TecnicoSenha': senha};
         url = Uri.parse('${AppConfig.baseUrl}/api/tecnico/login');
       }

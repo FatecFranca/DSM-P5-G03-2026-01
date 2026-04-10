@@ -499,15 +499,15 @@
 
 import 'dart:convert';
 import 'package:classificador/config.dart';
-import 'package:classificador/screens/login_screen.dart';
+import 'package:classificador/screens/shared/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Para FilteringTextInputFormatter
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
-import '../models/theme_model.dart';
-import '../models/user_model.dart';
+import '../../models/theme_model.dart';
+import '../../models/user_model.dart';
 
 class ProfileSettingsScreen extends StatefulWidget {
   final UserProfile user;

@@ -7,8 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../models/user_model.dart';
-import '../models/theme_model.dart';
+import '../../models/user_model.dart';
+import '../../models/theme_model.dart';
 
 class NewCallScreen extends StatefulWidget {
   const NewCallScreen({super.key});
@@ -151,7 +151,7 @@ class _NewCallScreenState extends State<NewCallScreen> {
                 hintText: 'Ex: Há um buraco na rua das flores...',
                 hintStyle: GoogleFonts.inter(color: Colors.grey[400]),
                 filled: true,
-                fillColor: cs.surfaceVariant.withOpacity(0.3),
+                fillColor: cs.surfaceContainerHighest.withOpacity(0.3),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,

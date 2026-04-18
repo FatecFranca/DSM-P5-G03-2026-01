@@ -776,6 +776,10 @@
                                 <span class="param-desc">ID da pessoa (deve ser a logada)</span>
                             </div>
                             <div class="param-row2">
+                                <span class="param-name">TipSupId<span class="required">*</span></span>
+                                <span class="param-desc">ID do Tipo Chamado (deve estar cadastrado na mesma unidade)</span>
+                            </div>
+                            <div class="param-row2">
                                 <span class="param-name">ChamadoDescricaoInicial<span class="required">*</span></span>
                                 <span class="param-desc">Descrição inicial do problema</span>
                             </div>
@@ -800,7 +804,7 @@
                         <div class="example-box">
                             <pre>{
   "PessoaId": 1,
-  "UnidadeId": 1,
+  "TipSupId": 1,
   "ChamadoDescricaoInicial": "Fios soltos na via",
   "ChamadoDiasComProblema": 25,
   "ChamadoRiscoVidaHumana": true,

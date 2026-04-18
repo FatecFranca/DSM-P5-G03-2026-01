@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Pessoa - Documentação</title>
+    <title>API Tipo Suporte - Documentação</title>
     <style>
         * {
             margin: 0;
@@ -296,12 +296,23 @@
 
         .param-row {
             display: grid;
-            grid-template-columns: 120px 1fr;
+            grid-template-columns: 130px 1fr;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .param-row2 {
+            display: grid;
+            grid-template-columns: 190px 1fr;
             padding: 10px 0;
             border-bottom: 1px solid #e2e8f0;
         }
 
         .param-row:last-child {
+            border-bottom: none;
+        }
+
+        .param-row2:last-child {
             border-bottom: none;
         }
 
@@ -414,11 +425,11 @@
             </div>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">Início</a>
-                <a href="pessoa.html" class="nav-link active">Pessoa</a>
+                <a href="pessoa.html" class="nav-link">Pessoa</a>
                 <a href="tecnico.html" class="nav-link">Técnico</a>
                 <a href="chamado.html" class="nav-link">Chamado</a>
                 <a href="atividade.html" class="nav-link">Atividade</a>
-                <a href="tipoChamado.html" class="nav-link">Tipo Chamado</a>
+                <a href="tiposuporte.html" class="nav-link active">Tipo Chamado</a>
             </div>
         </div>
 
@@ -430,13 +441,13 @@
             <div class="header-title">
                 <div class="header-icon">
                     <svg viewBox="0 0 24 24">
-                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
                     </svg>
                 </div>
-                <h1>👤 Pessoa - API Documentation</h1>
+                <h1>🏷️ Tipo Suporte - API Documentation</h1>
             </div>
             
-            <p>Gerenciamento completo de pessoas físicas. Endpoints para cadastro, consulta, atualização e controle de status.</p>
+            <p>Gerenciamento completo de tipos de suporte. Endpoints para cadastro, listagem, alteração e controle de status, com permissões específicas para gestores.</p>
             
             <div>
                 <span class="api-badge">REST API</span>
@@ -446,108 +457,55 @@
 
             <div class="base-url-section">
                 <strong>🔗 Base URL:</strong>
-                <code>http://localhost:3001/api/pessoa</code>
+                <code>http://localhost:3001/api/tiposuporte</code>
             </div>
         </div>
 
         <!-- Quick Stats -->
         <div class="quick-stats">
             <div class="stat-item">
-                <div class="stat-value">9</div>
+                <div class="stat-value">5</div>
                 <div class="stat-label">Endpoints</div>
             </div>
             <div class="stat-item">
                 <div class="stat-value">2</div>
-                <div class="stat-label">Níveis de Acesso</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">JWT</div>
-                <div class="stat-label">Auth</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value">3</div>
                 <div class="stat-label">Status</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">4</div>
+                <div class="stat-label">Perfis de Acesso</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">0</div>
+                <div class="stat-label">DELETE</div>
             </div>
         </div>
 
-        <!-- Login Endpoint (Público) -->
+        <!-- Fluxo de Status -->
         <div class="endpoint-group">
             <div class="group-title">
                 <div class="group-icon">
                     <svg viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
+                        <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1s-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm4 12h-4v3l-5-5 5-5v3h4v4z"/>
                     </svg>
                 </div>
-                <h2>Autenticação (Pública)</h2>
+                <h2>Status do Tipo de Suporte</h2>
             </div>
 
-            <!-- Login -->
-            <div class="endpoint-card">
-                <div class="endpoint-header">
-                    <span class="endpoint-method method-post">POST</span>
-                    <span class="endpoint-path">/login</span>
-                </div>
-                <p class="endpoint-description">Realiza login da pessoa utilizando CPF e senha.</p>
-                
-                <div class="details-grid">
-                    <div class="details-section">
-                        <h4>📥 Request Body</h4>
-                        <div class="param-table">
-                            <div class="param-row">
-                                <span class="param-name">PessoaUsuario<span class="required">*</span></span>
-                                <span class="param-desc">CPF do usuário</span>
-                            </div>
-                            <div class="param-row">
-                                <span class="param-name">PessoaSenha<span class="required">*</span></span>
-                                <span class="param-desc">Senha do usuário</span>
-                            </div>
-                        </div>
+            <div class="status-flow" style="display: flex; gap: 10px; margin: 15px 0; padding: 15px; background: #f0f0f0; border-radius: 8px; flex-wrap: wrap;">
+                <span class="status-item" style="background: #e8f5e9; color: #2e7d32; padding: 5px 10px; border-radius: 5px;">ATIVO</span>
+                <span>↔️</span>
+                <span class="status-item" style="background: #ffebee; color: #c62828; padding: 5px 10px; border-radius: 5px;">INATIVO</span>
+            </div>
 
-                        <div class="example-box">
-                            <pre>{
-  "PessoaUsuario": "12345678900",
-  "PessoaSenha": "minhasenha123"
-}</pre>
-                        </div>
-                    </div>
-
-                    <div class="details-section">
-                        <h4>📤 Responses</h4>
-                        <div>
-                            <span class="status-code code-200">200 OK</span>
-                            <span class="status-code code-400">400 Bad Request</span>
-                            <span class="status-code code-403">403 Forbidden</span>
-                            <span class="status-code code-500">500 Error</span>
-                        </div>
-
-                        <div class="example-box">
-                            <pre>{
-  "message": "Login realizado com sucesso",
-  "data": {
-    "usuario": {
-      "PessoaId": 1,
-      "PessoaNome": "João Silva",
-      "PessoaEmail": "joao@email.com",
-      "Unidade": {
-        "UnidadeNome": "Unidade Centro"
-      }
-    },
-    "token": "eyJhbGc...",
-    "tipo": "PESSOA"
-  }
-}</pre>
-                        </div>
-
-                        <div class="note-box">
-                            <strong>⚠️ Validações:</strong>
-                            <ul style="margin-left: 20px; margin-top: 5px;">
-                                <li>Pessoa deve estar ATIVA</li>
-                                <li>Unidade deve estar ATIVA</li>
-                                <li>Senha validada com pepper</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+            <div class="note-box">
+                <strong>📋 Regras de Transição:</strong>
+                <ul style="margin-left: 20px; margin-top: 10px;">
+                    <li>✅ ATIVO → INATIVO: Permite inativar, desde que não haja chamados em andamento vinculados</li>
+                    <li>✅ INATIVO → ATIVO: Permite reativar a qualquer momento</li>
+                    <li>⚠️ Ao inativar um tipo com chamados em andamento, a API retorna erro</li>
+                    <li>📌 Tipos inativos não podem ser selecionados para novos chamados</li>
+                </ul>
             </div>
         </div>
 
@@ -562,14 +520,14 @@
                 <h2>Endpoints Protegidos (Requer Token JWT)</h2>
             </div>
 
-            <!-- Listar Pessoas -->
+            <!-- Listar Tipos de Suporte -->
             <div class="endpoint-card">
                 <div class="endpoint-header">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/</span>
-                    <span class="permission-badge">🔑 GESTOR | PESSOA</span>
+                    <span class="permission-badge">🔑 GESTOR | TÉCNICO | PESSOA</span>
                 </div>
-                <p class="endpoint-description">Lista pessoas com filtros. Gestores veem todas da unidade, pessoas veem apenas seus dados.</p>
+                <p class="endpoint-description">Lista tipos de suporte com múltiplos filtros. Vendo apenas os tipos da sua unidade. Útil para preencher comboboxes. Disponível para Gestores e Pessoas.</p>
                 
                 <div class="details-grid">
                     <div class="details-section">
@@ -577,15 +535,15 @@
                         <div class="param-table">
                             <div class="param-row">
                                 <span class="param-name">unidadeId</span>
-                                <span class="param-desc">Filtrar por unidade (apenas gestor)</span>
+                                <span class="param-desc">Filtrar por unidade (apenas admin)</span>
                             </div>
                             <div class="param-row">
                                 <span class="param-name">status</span>
-                                <span class="param-desc">ATIVA, INATIVA, BLOQUEADA</span>
+                                <span class="param-desc">ATIVO ou INATIVO</span>
                             </div>
                             <div class="param-row">
                                 <span class="param-name">nome</span>
-                                <span class="param-desc">Busca por nome</span>
+                                <span class="param-desc">Busca por nome (case insensitive)</span>
                             </div>
                             <div class="param-row">
                                 <span class="param-name">pagina</span>
@@ -606,6 +564,34 @@
                             <span class="status-code code-401">401 Unauthorized</span>
                             <span class="status-code code-403">403 Forbidden</span>
                         </div>
+
+                        <div class="example-box">
+                            <pre>{
+  "data": [
+    {
+      "TipSupId": 1,
+      "UnidadeId": 1,
+      "TipSupNom": "Suporte Técnico",
+      "TipSupStatus": "ATIVO",
+      "TipSupDtCadastro": "2026-04-01T10:00:00.000Z",
+      "Unidade": {
+        "UnidadeId": 1,
+        "UnidadeNome": "Secretaria Municipal",
+        "UnidadeStatus": "ATIVA"
+      },
+      "_count": {
+        "Chamado": 45
+      }
+    }
+  ],
+  "paginacao": {
+    "paginaAtual": 1,
+    "limitePorPagina": 10,
+    "totalRegistros": 25,
+    "totalPaginas": 3
+  }
+}</pre>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -615,9 +601,9 @@
                 <div class="endpoint-header">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/{id}</span>
-                    <span class="permission-badge">🔑 GESTOR | PESSOA</span>
+                    <span class="permission-badge">🔑 GESTOR | TÉCNICO | PESSOA</span>
                 </div>
-                <p class="endpoint-description">Busca pessoa por ID com últimos 10 chamados.</p>
+                <p class="endpoint-description">Busca tipo de suporte por ID com todos os detalhes e últimos 10 chamados vinculados.</p>
                 
                 <div class="details-grid">
                     <div class="details-section">
@@ -625,7 +611,7 @@
                         <div class="param-table">
                             <div class="param-row">
                                 <span class="param-name">id<span class="required">*</span></span>
-                                <span class="param-desc">ID da pessoa</span>
+                                <span class="param-desc">ID do tipo de suporte</span>
                             </div>
                         </div>
                     </div>
@@ -639,6 +625,31 @@
                             <span class="status-code code-403">403 Forbidden</span>
                             <span class="status-code code-404">404 Not Found</span>
                         </div>
+
+                        <div class="example-box">
+                            <pre>{
+  "data": {
+    "TipSupId": 1,
+    "UnidadeId": 1,
+    "TipSupNom": "Suporte Técnico",
+    "TipSupStatus": "ATIVO",
+    "TipSupDtCadastro": "2026-04-01T10:00:00.000Z",
+    "Unidade": {
+      "UnidadeId": 1,
+      "UnidadeNome": "Secretaria Municipal",
+      "UnidadeStatus": "ATIVA"
+    },
+    "Chamado": [
+      {
+        "ChamadoId": 101,
+        "ChamadoTitulo": "Problema com rede",
+        "ChamadoStatus": "PENDENTE",
+        "ChamadoDtAbertura": "2026-04-15T08:00:00.000Z"
+      }
+    ]
+  }
+}</pre>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -648,9 +659,9 @@
                 <div class="endpoint-header">
                     <span class="endpoint-method method-get">GET</span>
                     <span class="endpoint-path">/unidade/{unidadeId}</span>
-                    <span class="permission-badge">🔑 GESTOR</span>
+                    <span class="permission-badge">🔑 GESTOR | TÉCNICO | PESSOA</span>
                 </div>
-                <p class="endpoint-description">Lista pessoas por unidade (para uso em selects).</p>
+                <p class="endpoint-description">Lista tipos de suporte de uma unidade específica.</p>
                 
                 <div class="details-grid">
                     <div class="details-section">
@@ -662,7 +673,7 @@
                             </div>
                             <div class="param-row">
                                 <span class="param-name">apenasAtivos</span>
-                                <span class="param-desc">true/false - filtra apenas pessoas ATIVAS</span>
+                                <span class="param-desc">Query param: 'true' ou 'false' (filtra apenas ATIVOS)</span>
                             </div>
                         </div>
                     </div>
@@ -676,61 +687,65 @@
                             <span class="status-code code-403">403 Forbidden</span>
                             <span class="status-code code-404">404 Not Found</span>
                         </div>
+
+                        <div class="example-box">
+                            <pre>{
+  "data": [
+    {
+      "TipSupId": 1,
+      "TipSupNom": "Suporte Técnico",
+      "TipSupStatus": "ATIVO",
+      "_count": {
+        "Chamado": 45
+      }
+    },
+    {
+      "TipSupId": 2,
+      "TipSupNom": "Dúvidas",
+      "TipSupStatus": "ATIVO",
+      "_count": {
+        "Chamado": 12
+      }
+    }
+  ]
+}</pre>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Cadastrar Pessoa -->
+            <!-- Cadastrar Tipo Suporte -->
             <div class="endpoint-card">
                 <div class="endpoint-header">
                     <span class="endpoint-method method-post">POST</span>
                     <span class="endpoint-path">/</span>
-                    <span class="permission-badge">🔑 GESTOR (mesma unidade)</span>
+                    <span class="permission-badge">🔑 GESTOR</span>
                 </div>
-                <p class="endpoint-description">Cadastra nova pessoa. Apenas gestores da mesma unidade.</p>
+                <p class="endpoint-description">Cadastra um novo tipo de suporte. Apenas gestores da unidade.</p>
                 
                 <div class="details-grid">
                     <div class="details-section">
                         <h4>📥 Request Body</h4>
                         <div class="param-table">
-                            <div class="param-row">
+                            <div class="param-row2">
                                 <span class="param-name">UnidadeId<span class="required">*</span></span>
-                                <span class="param-desc">ID da unidade</span>
+                                <span class="param-desc">ID da unidade (deve ser a do gestor)</span>
                             </div>
-                            <div class="param-row">
-                                <span class="param-name">PessoaNome<span class="required">*</span></span>
-                                <span class="param-desc">Nome completo</span>
+                            <div class="param-row2">
+                                <span class="param-name">TipSupNom<span class="required">*</span></span>
+                                <span class="param-desc">Nome do tipo de suporte</span>
                             </div>
-                            <div class="param-row">
-                                <span class="param-name">PessoaCPF<span class="required">*</span></span>
-                                <span class="param-desc">CPF (único)</span>
-                            </div>
-                            <div class="param-row">
-                                <span class="param-name">PessoaSenha<span class="required">*</span></span>
-                                <span class="param-desc">Mínimo 6 caracteres</span>
-                            </div>
-                            <div class="param-row">
-                                <span class="param-name">PessoaEmail</span>
-                                <span class="param-desc">E-mail válido</span>
-                            </div>
-                            <div class="param-row">
-                                <span class="param-name">PessoaTelefone</span>
-                                <span class="param-desc">Telefone para contato</span>
-                            </div>
-                            <div class="param-row">
-                                <span class="param-name">PessoaStatus</span>
-                                <span class="param-desc">ATIVA, INATIVA, BLOQUEADA (default: ATIVA)</span>
+                            <div class="param-row2">
+                                <span class="param-name">TipSupStatus</span>
+                                <span class="param-desc">ATIVO ou INATIVO (default: ATIVO)</span>
                             </div>
                         </div>
 
                         <div class="example-box">
                             <pre>{
   "UnidadeId": 1,
-  "PessoaNome": "Maria Oliveira",
-  "PessoaEmail": "maria@email.com",
-  "PessoaTelefone": "11999999999",
-  "PessoaCPF": "12345678901",
-  "PessoaSenha": "senha123"
+  "TipSupNom": "Suporte de Rede",
+  "TipSupStatus": "ATIVO"
 }</pre>
                         </div>
                     </div>
@@ -751,22 +766,22 @@
                             <ul style="margin-left: 20px; margin-top: 5px;">
                                 <li>Gestor deve estar ATIVO</li>
                                 <li>Unidade deve estar ATIVA</li>
-                                <li>CPF não pode ser duplicado</li>
-                                <li>Gestor deve ser da mesma unidade</li>
+                                <li>Nome do tipo deve ser único na unidade</li>
+                                <li>Gestor só pode cadastrar na sua própria unidade</li>
                             </ul>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Alterar Pessoa -->
+            <!-- Alterar Tipo Suporte -->
             <div class="endpoint-card">
                 <div class="endpoint-header">
                     <span class="endpoint-method method-put">PUT</span>
                     <span class="endpoint-path">/{id}</span>
-                    <span class="permission-badge">🔑 GESTOR | PRÓPRIA PESSOA</span>
+                    <span class="permission-badge">🔑 GESTOR</span>
                 </div>
-                <p class="endpoint-description">Altera dados da pessoa. Gestor pode alterar tudo, pessoa só dados básicos.</p>
+                <p class="endpoint-description">Altera dados do tipo de suporte. Apenas gestores da unidade.</p>
                 
                 <div class="details-grid">
                     <div class="details-section">
@@ -774,8 +789,26 @@
                         <div class="param-table">
                             <div class="param-row">
                                 <span class="param-name">id<span class="required">*</span></span>
-                                <span class="param-desc">ID da pessoa (path)</span>
+                                <span class="param-desc">ID do tipo de suporte (path)</span>
                             </div>
+                        </div>
+                        <h4 style="margin-top: 15px;">📥 Request Body</h4>
+                        <div class="param-table">
+                            <div class="param-row">
+                                <span class="param-name">TipSupNom</span>
+                                <span class="param-desc">Novo nome (opcional)</span>
+                            </div>
+                            <div class="param-row">
+                                <span class="param-name">TipSupStatus</span>
+                                <span class="param-desc">ATIVO ou INATIVO (opcional)</span>
+                            </div>
+                        </div>
+
+                        <div class="example-box">
+                            <pre>{
+  "TipSupNom": "Suporte Avançado",
+  "TipSupStatus": "INATIVO"
+}</pre>
                         </div>
                     </div>
 
@@ -789,15 +822,16 @@
                             <span class="status-code code-404">404 Not Found</span>
                             <span class="status-code code-409">409 Conflict</span>
                         </div>
-                    </div>
-                </div>
 
-                <div class="note-box">
-                    <strong>📋 Regras de Permissão:</strong>
-                    <ul style="margin-left: 20px; margin-top: 5px;">
-                        <li><strong>PESSOA:</strong> Pode alterar nome, email, telefone e senha. Não pode alterar status, unidade ou CPF.</li>
-                        <li><strong>GESTOR:</strong> Pode alterar todos os campos, desde que seja da mesma unidade e esteja ativo.</li>
-                    </ul>
+                        <div class="note-box">
+                            <strong>⚠️ Validações Especiais:</strong>
+                            <ul style="margin-left: 20px; margin-top: 5px;">
+                                <li>Não é possível inativar se existirem chamados em andamento vinculados</li>
+                                <li>Nome deve ser único na unidade (ignorando o próprio registro)</li>
+                                <li>Gestor só pode alterar tipos da sua própria unidade</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -806,23 +840,23 @@
                 <div class="endpoint-header">
                     <span class="endpoint-method method-patch">PATCH</span>
                     <span class="endpoint-path">/{id}/status</span>
-                    <span class="permission-badge">🔑 GESTOR (mesma unidade)</span>
+                    <span class="permission-badge">🔑 GESTOR</span>
                 </div>
-                <p class="endpoint-description">Altera apenas o status da pessoa. Apenas gestores.</p>
+                <p class="endpoint-description">Altera apenas o status do tipo de suporte. Endpoint específico para ativar/inativar.</p>
                 
                 <div class="details-grid">
                     <div class="details-section">
                         <h4>📥 Request Body</h4>
                         <div class="param-table">
                             <div class="param-row">
-                                <span class="param-name">PessoaStatus<span class="required">*</span></span>
-                                <span class="param-desc">ATIVA, INATIVA, BLOQUEADA</span>
+                                <span class="param-name">TipSupStatus<span class="required">*</span></span>
+                                <span class="param-desc">ATIVO ou INATIVO</span>
                             </div>
                         </div>
 
                         <div class="example-box">
                             <pre>{
-  "PessoaStatus": "BLOQUEADA"
+  "TipSupStatus": "INATIVO"
 }</pre>
                         </div>
                     </div>
@@ -839,12 +873,13 @@
                     </div>
                 </div>
 
-                <div class="note-box">
+                <div class="note-box" style="margin-top: 20px;">
                     <strong>⚠️ Restrições:</strong>
                     <ul style="margin-left: 20px; margin-top: 5px;">
-                        <li>Não é possível INATIVAR/BLOQUEAR pessoa com chamados em aberto</li>
-                        <li>Gestor deve estar ATIVO</li>
-                        <li>Unidade deve estar ATIVA</li>
+                        <li>Para INATIVAR: não pode haver chamados em andamento vinculados ao tipo</li>
+                        <li>Para ATIVAR: não há restrições adicionais</li>
+                        <li>Gestor só pode alterar status de tipos da sua própria unidade</li>
+                        <li>Unidade do tipo deve estar ATIVA</li>
                     </ul>
                 </div>
             </div>
@@ -858,43 +893,75 @@
                         <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
                     </svg>
                 </div>
-                <h2>Modelo de Dados - Pessoa</h2>
+                <h2>Modelo de Dados - Tipo Suporte</h2>
+            </div>
+
+            <div class="endpoint-card">
+                <div class="param-table">
+                    <div class="param-row2">
+                        <span class="param-name">TipSupId</span>
+                        <span class="param-desc">Integer - ID único do tipo de suporte (PK)</span>
+                    </div>
+                    <div class="param-row2">
+                        <span class="param-name">UnidadeId</span>
+                        <span class="param-desc">Integer - ID da unidade (FK)</span>
+                    </div>
+                    <div class="param-row2">
+                        <span class="param-name">TipSupNom</span>
+                        <span class="param-desc">String - Nome do tipo de suporte</span>
+                    </div>
+                    <div class="param-row2">
+                        <span class="param-name">TipSupStatus</span>
+                        <span class="param-desc">Enum - ATIVO, INATIVO</span>
+                    </div>
+                    <div class="param-row2">
+                        <span class="param-name">TipSupDtCadastro</span>
+                        <span class="param-desc">DateTime - Data de cadastro (gerado automaticamente)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regras de Permissão -->
+        <div class="endpoint-group">
+            <div class="group-title">
+                <div class="group-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 12c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm0-10c4.2 0 8 3.22 8 8.2 0 3.32-2.67 7.25-8 11.8-5.33-4.55-8-8.48-8-11.8C4 5.22 7.8 2 12 2z"/>
+                    </svg>
+                </div>
+                <h2>Regras de Permissão por Perfil</h2>
             </div>
 
             <div class="endpoint-card">
                 <div class="param-table">
                     <div class="param-row">
-                        <span class="param-name">PessoaId</span>
-                        <span class="param-desc">Integer - ID único da pessoa</span>
+                        <span class="param-name">👑 ADMINISTRADOR</span>
+                        <span class="param-desc">Acesso total a todos os tipos de suporte de todas as unidades</span>
                     </div>
                     <div class="param-row">
-                        <span class="param-name">UnidadeId</span>
-                        <span class="param-desc">Integer - ID da unidade (FK)</span>
+                        <span class="param-name">📋 GESTOR</span>
+                        <span class="param-desc">CRUD completo apenas nos tipos de suporte da sua própria unidade</span>
                     </div>
                     <div class="param-row">
-                        <span class="param-name">PessoaNome</span>
-                        <span class="param-desc">String - Nome completo</span>
+                        <span class="param-name">🔧 TÉCNICO</span>
+                        <span class="param-desc">Visualização apenas (GET) dos tipos de suporte da sua unidade</span>
                     </div>
                     <div class="param-row">
-                        <span class="param-name">PessoaEmail</span>
-                        <span class="param-desc">String - E-mail (único)</span>
+                        <span class="param-name">👤 PESSOA</span>
+                        <span class="param-desc">Visualização apenas (GET) dos tipos de suporte da sua unidade</span>
                     </div>
-                    <div class="param-row">
-                        <span class="param-name">PessoaTelefone</span>
-                        <span class="param-desc">String - Telefone</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">PessoaCPF</span>
-                        <span class="param-desc">String - CPF (único)</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">PessoaStatus</span>
-                        <span class="param-desc">Enum - ATIVA, INATIVA, BLOQUEADA</span>
-                    </div>
-                    <div class="param-row">
-                        <span class="param-name">PessoadtCadastro</span>
-                        <span class="param-desc">DateTime - Data de cadastro</span>
-                    </div>
+                </div>
+
+                <div class="note-box" style="margin-top: 20px;">
+                    <strong>🔍 Observações Importantes:</strong>
+                    <ul style="margin-left: 20px; margin-top: 10px;">
+                        <li><strong>Não há rota de DELETE</strong> - tipos de suporte não podem ser excluídos, apenas inativados</li>
+                        <li>Todos os endpoints exigem autenticação via token JWT</li>
+                        <li>Gestores só podem gerenciar tipos da sua própria unidade</li>
+                        <li>Técnicos e Pessoas têm acesso apenas de leitura</li>
+                        <li>A inativação de um tipo com chamados em andamento é bloqueada pela API</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -914,7 +981,7 @@
                 <div class="param-table">
                     <div class="param-row">
                         <span class="param-name">400</span>
-                        <span class="param-desc">Campo obrigatório não preenchido, senha muito curta, status inválido</span>
+                        <span class="param-desc">Campos obrigatórios faltando, status inválido, ID inválido</span>
                     </div>
                     <div class="param-row">
                         <span class="param-name">401</span>
@@ -922,16 +989,24 @@
                     </div>
                     <div class="param-row">
                         <span class="param-name">403</span>
-                        <span class="param-desc">Usuário inativo, unidade inativa, permissão negada</span>
+                        <span class="param-desc">Gestor inativo, unidade inativa, permissão negada, transição de status inválida</span>
                     </div>
                     <div class="param-row">
                         <span class="param-name">404</span>
-                        <span class="param-desc">Pessoa ou unidade não encontrada</span>
+                        <span class="param-desc">Tipo de suporte, unidade ou gestor não encontrado</span>
                     </div>
                     <div class="param-row">
                         <span class="param-name">409</span>
-                        <span class="param-desc">CPF já cadastrado</span>
+                        <span class="param-desc">Conflito - Já existe um tipo com o mesmo nome na unidade</span>
                     </div>
+                    <div class="param-row">
+                        <span class="param-name">500</span>
+                        <span class="param-desc">Erro interno do servidor</span>
+                    </div>
+                </div>
+
+                <div class="note-box" style="margin-top: 20px;">
+                    <strong>📌 Nota Importante:</strong> A API não possui rota de DELETE para tipos de suporte. A exclusão lógica é feita através da alteração de status para INATIVO.
                 </div>
             </div>
         </div>

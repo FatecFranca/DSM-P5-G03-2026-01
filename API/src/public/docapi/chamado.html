@@ -454,6 +454,7 @@
                 <a href="tecnico.html" class="nav-link">Técnico</a>
                 <a href="chamado.html" class="nav-link active">Chamado</a>
                 <a href="atividade.html" class="nav-link">Atividade</a>
+                <a href="tipoChamado.html" class="nav-link">Tipo Chamado</a>
             </div>
         </div>
 
@@ -775,12 +776,24 @@
                                 <span class="param-desc">ID da pessoa (deve ser a logada)</span>
                             </div>
                             <div class="param-row2">
-                                <span class="param-name">UnidadeId<span class="required">*</span></span>
-                                <span class="param-desc">ID da unidade (deve ser da pessoa)</span>
-                            </div>
-                            <div class="param-row2">
                                 <span class="param-name">ChamadoDescricaoInicial<span class="required">*</span></span>
                                 <span class="param-desc">Descrição inicial do problema</span>
+                            </div>
+                            <div class="param-row2">
+                                <span class="param-name">ChamadoDiasComProblema<span class="required">*</span></span>
+                                <span class="param-desc">Dias em que o problema existe (int)</span>
+                            </div>
+                            <div class="param-row2">
+                                <span class="param-name">ChamadoRiscoVidaHumana<span class="required">*</span></span>
+                                <span class="param-desc">Vidas humanas correm risco (boolean)</span>
+                            </div>
+                            <div class="param-row2">
+                                <span class="param-name">ChamadoRiscoVidaAnimal<span class="required">*</span></span>
+                                <span class="param-desc">Vidas de animais correm risco (boolean)</span>
+                            </div>
+                            <div class="param-row2">
+                                <span class="param-name">ChamadoBloqueioVia<span class="required">*</span></span>
+                                <span class="param-desc">Via/Rua/Estrada está bloqueada devido ao problema (boolean)</span>
                             </div>
                         </div>
 
@@ -788,7 +801,11 @@
                             <pre>{
   "PessoaId": 1,
   "UnidadeId": 1,
-  "ChamadoDescricaoInicial": "Computador não liga"
+  "ChamadoDescricaoInicial": "Fios soltos na via",
+  "ChamadoDiasComProblema": 25,
+  "ChamadoRiscoVidaHumana": true,
+  "ChamadoRiscoVidaAnimal": false,
+  "ChamadoBloqueioVia": false
 }</pre>
                         </div>
                     </div>

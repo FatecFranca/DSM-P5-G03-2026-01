@@ -6,7 +6,7 @@ class ChamadoController {
     // Abrir novo chamado (apenas PESSOA)
     async abrirChamado(req, res) {
         try {
-            const { PessoaId, UnidadeId, ChamadoDescricaoInicial } = req.body;
+            const { PessoaId, ChamadoDescricaoInicial, ChamadoDiasComProblema, ChamadoRiscoVidaHumana, ChamadoRiscoVidaAnimal, ChamadoBloqueioVia, TipSupId } = req.body;
             const usuarioLogado = req.usuario;
 
             // Validações básicas
@@ -14,12 +14,28 @@ class ChamadoController {
                 return res.status(400).json({ error: 'ID da pessoa é obrigatório' });
             }
 
-            if (!UnidadeId) {
-                return res.status(400).json({ error: 'Unidade é obrigatória' });
-            }
-
             if (!ChamadoDescricaoInicial || !ChamadoDescricaoInicial.trim()) {
                 return res.status(400).json({ error: 'Descrição inicial do chamado é obrigatória' });
+            }
+
+            if (!ChamadoDiasComProblema || isNaN(parseInt(ChamadoDiasComProblema)) || parseInt(ChamadoDiasComProblema) < 1) {
+                return res.status(400).json({ error: 'Dias com problemas deve ser maior ou igual a um' });
+            }
+
+            if (!TipSupId || isNaN(parseInt(TipSupId)) || parseInt(TipSupId) <= 0) {
+                return res.status(400).json({ error: 'Tipo de suporte é obrigatório' });
+            }
+
+            if (ChamadoRiscoVidaHumana === undefined || typeof ChamadoRiscoVidaHumana !== 'boolean') {
+                return res.status(400).json({ error: 'Risco de vida humana é obrigatório' });
+            }
+
+            if (ChamadoRiscoVidaAnimal === undefined || typeof ChamadoRiscoVidaAnimal !== 'boolean') {
+                return res.status(400).json({ error: 'Risco de vida animal é obrigatório' });
+            }
+
+            if (ChamadoBloqueioVia === undefined || typeof ChamadoBloqueioVia !== 'boolean') {
+                return res.status(400).json({ error: 'Via bloqueada é obrigatório' });
             }
 
             // Verificar se o usuário é PESSOA
@@ -55,14 +71,9 @@ class ChamadoController {
                 });
             }
 
-            // Verificar se a unidade da pessoa corresponde à informada
-            if (pessoa.UnidadeId !== parseInt(UnidadeId)) {
-                return res.status(400).json({
-                    error: 'A unidade informada não corresponde à unidade da pessoa'
-                });
-            }
+            const UnidadeId = pessoa.UnidadeId;
 
-            // Verificar se a unidade existe e está ativa
+            // Verificar se a unidade está ativa
             const unidade = await prisma.unidade.findUnique({
                 where: { UnidadeId: parseInt(UnidadeId) }
             });
@@ -77,6 +88,21 @@ class ChamadoController {
                 });
             }
 
+            // Verificar se o tipo de suporte existe, pertence à unidade e está ativo
+            const tipoSuporte = await prisma.tipoSuporte.findFirst({
+                where: {
+                    TipSupId: parseInt(TipSupId),
+                    UnidadeId: parseInt(UnidadeId),
+                    TipSupStatus: 'ATIVO'
+                }
+            });
+
+            if (!tipoSuporte) {
+                return res.status(404).json({
+                    error: 'Tipo de suporte não encontrado, ou não pertence à unidade ou está inativo'
+                });
+            }
+
             // Criar chamado
             const chamado = await prisma.chamado.create({
                 data: {
@@ -84,7 +110,11 @@ class ChamadoController {
                     UnidadeId: parseInt(UnidadeId),
                     ChamadoDescricaoInicial: ChamadoDescricaoInicial.trim(),
                     ChamadoStatus: 'PENDENTE',
-                    ChamadoDtAbertura: new Date()
+                    ChamadoDtAbertura: new Date(),
+                    ChamadoBloqueioVia: ChamadoBloqueioVia,
+                    ChamadoDiasComProblema: parseInt(ChamadoDiasComProblema),
+                    ChamadoRiscoVidaHumana: ChamadoRiscoVidaHumana,
+                    ChamadoRiscoVidaAnimal: ChamadoRiscoVidaAnimal
                 },
                 include: {
                     Pessoa: {
@@ -126,7 +156,11 @@ class ChamadoController {
                 ChamadoTitulo,
                 ChamadoDescricaoInicial,
                 ChamadoPrioridade,
-                ChamadoUrgencia
+                ChamadoUrgencia,
+                ChamadoDiasComProblema,
+                ChamadoRiscoVidaHumana,
+                ChamadoRiscoVidaAnimal,
+                ChamadoBloqueioVia,
             } = req.body;
 
             const usuarioLogado = req.usuario;
@@ -174,10 +208,10 @@ class ChamadoController {
                 tipoAcesso = 'PESSOA';
 
                 // Pessoa não pode alterar campos restritos
-                if (TipSupId !== undefined || EquipeId !== undefined || ChamadoPrioridade !== undefined ||
+                if (EquipeId !== undefined || ChamadoPrioridade !== undefined ||
                     ChamadoUrgencia !== undefined) {
                     return res.status(403).json({
-                        error: 'Você não pode alterar tipo de suporte, equipe, prioridade, urgência ou status do chamado'
+                        error: 'Você não pode alterar equipe, prioridade ou urgência'
                     });
                 }
 
@@ -189,6 +223,33 @@ class ChamadoController {
                 } else if (chamadoExistente.ChamadoStatus === 'FALTAINFORMACAO') {
                     // Após alterar a descrição inicial, o status volta para pendente para nova análise
                     dadosAtualizacao.ChamadoStatus = 'PENDENTE';
+                }
+
+                // Dados que somente a pessoa pode alterar, mesmo que seja gestor, e que são obrigatórios para a resolução do chamado
+                if (tipoAcesso === 'PESSOA') {
+                    if (!ChamadoDiasComProblema || isNaN(parseInt(ChamadoDiasComProblema)) || parseInt(ChamadoDiasComProblema) < 1) {
+                        return res.status(400).json({ error: 'Dias com problemas deve ser maior ou igual a um' });
+                    } else {
+                        dadosAtualizacao.ChamadoDiasComProblema = parseInt(ChamadoDiasComProblema);
+                    }
+
+                    if (ChamadoRiscoVidaHumana === undefined || typeof ChamadoRiscoVidaHumana !== 'boolean') {
+                        return res.status(400).json({ error: 'Risco de vida humana é obrigatório' });
+                    } else {
+                        dadosAtualizacao.ChamadoRiscoVidaHumana = ChamadoRiscoVidaHumana;
+                    }
+
+                    if (ChamadoRiscoVidaAnimal === undefined || typeof ChamadoRiscoVidaAnimal !== 'boolean') {
+                        return res.status(400).json({ error: 'Risco de vida animal é obrigatório' });
+                    } else {
+                        dadosAtualizacao.ChamadoRiscoVidaAnimal = ChamadoRiscoVidaAnimal;
+                    }
+
+                    if (ChamadoBloqueioVia === undefined || typeof ChamadoBloqueioVia !== 'boolean') {
+                        return res.status(400).json({ error: 'Via bloqueada é obrigatório' });
+                    } else {
+                        dadosAtualizacao.ChamadoBloqueioVia = ChamadoBloqueioVia;
+                    }
                 }
             }
 
@@ -211,9 +272,11 @@ class ChamadoController {
             }
 
             // Validar e adicionar campos de acordo com o tipo de acesso
-            if (TipSupId !== undefined && tipoAcesso === 'GESTOR') {
+            if (TipSupId !== undefined && tipoAcesso === 'GESTOR' && tipoAcesso !== 'PESSOA') {
                 // Verificar se o tipo de suporte existe e pertence à unidade
-                if (TipSupId) {
+                if (!TipSupId || isNaN(parseInt(TipSupId)) || parseInt(TipSupId) <= 0) {
+                    return res.status(400).json({ error: 'Tipo de suporte é obrigatório' });
+                } else {
                     const tipoSuporte = await prisma.tipoSuporte.findFirst({
                         where: {
                             TipSupId: parseInt(TipSupId),
@@ -259,14 +322,14 @@ class ChamadoController {
                 });
             }
 
-            if (ChamadoTitulo !== undefined) {
+            if (ChamadoTitulo !== undefined && tipoAcesso === 'GESTOR') {
                 if (!ChamadoTitulo.trim()) {
                     return res.status(400).json({ error: 'Título do chamado não pode ser vazio, se for desejado inseri-lo' });
                 }
                 dadosAtualizacao.ChamadoTitulo = ChamadoTitulo.trim();
             }
 
-            console.log('ChamadoDescricaoInicial = ', ChamadoDescricaoInicial);
+            //console.log('ChamadoDescricaoInicial = ', ChamadoDescricaoInicial);
             if (ChamadoDescricaoInicial !== undefined && ChamadoDescricaoInicial.trim() !== '') {
                 // Gestor altera a descrição formatada
                 if (tipoAcesso === 'GESTOR') {

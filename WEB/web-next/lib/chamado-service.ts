@@ -27,6 +27,10 @@ export interface Chamado {
   TipSupId?: number;
   EquipeId?: number;
   AtividadeChamado?: Atividade[];
+  ChamadoDiasComProblema: 0;
+  ChamadoRiscoVidaHumana: false;
+  ChamadoRiscoVidaAnimal: false;
+  ChamadoBloqueioVia: false;
   Pessoa: {
     PessoaId: number;
     PessoaNome: string;
@@ -131,6 +135,7 @@ export async function alterarChamado(
     ChamadoPrioridade?: number;
     ChamadoUrgencia?: 'BAIXA' | 'MEDIA' | 'ALTA' | 'URGENTE';
     ChamadoStatus?: string;
+
   }
 ) {
   try {

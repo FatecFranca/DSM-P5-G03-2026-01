@@ -14,6 +14,13 @@ export interface TipoSuporte {
   _count?: {
     Chamado: number;
   };
+  // ADICIONE esta propriedade
+  Chamado?: Array<{
+    ChamadoId: number;
+    ChamadoTitulo: string;
+    ChamadoStatus: string;
+    ChamadoDtAbertura: string;
+  }>;
 }
 
 export interface TipoSuporteFilters {

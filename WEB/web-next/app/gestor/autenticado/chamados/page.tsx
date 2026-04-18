@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
 import {
   Ticket,
   Search,
@@ -104,17 +103,24 @@ export default function ChamadosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<ChamadoFilters>({
-    pagina: 1,
-    limite: 10
+    //pagina: 1,
+    //limite: 10,
+    status: undefined,
+    urgencia: undefined,
+    dataInicio: undefined,
+    dataFim: undefined
   });
-  const [paginacao, setPaginacao] = useState({
-    paginaAtual: 1,
-    limitePorPagina: 10,
-    totalRegistros: 0,
-    totalPaginas: 1
-  });
+  // const [paginacao, setPaginacao] = useState({
+  //   //paginaAtual: 1,
+  //   //limitePorPagina: 10,
+  //   totalRegistros: 0,
+  //   totalPaginas: 1
+  // });
   const [showFilters, setShowFilters] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [itensPorPagina, setItensPorPagina] = useState(10);
 
   useEffect(() => {
     carregarDados();
@@ -125,14 +131,20 @@ export default function ChamadosPage() {
       setIsLoading(true);
       setError(null);
 
+      const { pagina, limite, ...filtersSemPaginacao } = filters as any;
+
       const [chamadosResponse, stats] = await Promise.all([
         listarChamados(filters),
         getEstatisticas('30d')
       ]);
 
-      setChamados(chamadosResponse.data);
-      setPaginacao(chamadosResponse.paginacao);
+      // A API pode retornar os dados diretamente ou dentro de um objeto 'data'
+      const dadosChamados = chamadosResponse.data || chamadosResponse;
+      setChamados(dadosChamados);
       setEstatisticas(stats);
+
+      // Resetar para primeira página ao carregar novos dados
+      setPaginaAtual(1);
     } catch (err) {
       console.error('Erro ao carregar chamados:', err);
       setError('Não foi possível carregar os chamados');
@@ -143,27 +155,70 @@ export default function ChamadosPage() {
 
   const handleFilterChange = (key: keyof ChamadoFilters, value: any) => {
     setFilters({ ...filters, [key]: value, pagina: 1 });
+    setPaginaAtual(1); // Resetar página ao aplicar filtros
   };
 
   const handlePageChange = (novaPagina: number) => {
-    setFilters({ ...filters, pagina: novaPagina });
+    setPaginaAtual(novaPagina);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // Implementar busca quando o backend suportar
-    setFilters({ ...filters, pagina: 1 });
+    setPaginaAtual(1); // Resetar página ao buscar
   };
+
+  // Resetar página quando os filtros mudarem
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [searchTerm, filters.status, filters.urgencia, filters.dataInicio, filters.dataFim]);
 
   const formatDate = (dateString: string) => {
     return format(new Date(dateString), "dd/MM/yyyy HH:mm", { locale: ptBR });
   };
 
-  // Filtrar localmente enquanto o backend não tem busca
-  const chamadosFiltrados = chamados.filter(c =>
-    (c.ChamadoTitulo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.Pessoa.PessoaNome.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrar os dados (local)
+  const chamadosFiltrados = useMemo(() => {
+    let filtered = [...chamados];
+
+    // Filtro por busca
+    if (searchTerm) {
+      filtered = filtered.filter(c =>
+        (c.ChamadoTitulo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        c.Pessoa.PessoaNome.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Filtro por status
+    if (filters.status) {
+      filtered = filtered.filter(c => c.ChamadoStatus === filters.status);
+    }
+
+    // Filtro por urgência
+    if (filters.urgencia) {
+      filtered = filtered.filter(c => c.ChamadoUrgencia === filters.urgencia);
+    }
+
+    // Filtro por data de abertura
+    if (filters.dataInicio) {
+      const dataInicio = new Date(filters.dataInicio);
+      filtered = filtered.filter(c => new Date(c.ChamadoDtAbertura) >= dataInicio);
+    }
+
+    if (filters.dataFim) {
+      const dataFim = new Date(filters.dataFim);
+      dataFim.setHours(23, 59, 59);
+      filtered = filtered.filter(c => new Date(c.ChamadoDtAbertura) <= dataFim);
+    }
+
+    return filtered;
+  }, [chamados, searchTerm, filters.status, filters.urgencia, filters.dataInicio, filters.dataFim]);
+
+  // Calcular paginação client-side
+  const totalRegistros = chamadosFiltrados.length;
+  const totalPaginas = Math.ceil(totalRegistros / itensPorPagina);
+  const inicio = (paginaAtual - 1) * itensPorPagina;
+  const fim = inicio + itensPorPagina;
+  const chamadosPaginados = chamadosFiltrados.slice(inicio, fim);
 
   const statusOptions = [
     { value: 'PENDENTE', label: 'Pendente', color: 'yellow' },
@@ -286,7 +341,7 @@ export default function ChamadosPage() {
               {estatisticas.porStatus.CANCELADO || 0}
             </p>
           </div>
-          
+
         </div>
 
       )}
@@ -493,29 +548,76 @@ export default function ChamadosPage() {
         )}
 
         {/* Paginação */}
+        {/* Paginação - ATUALIZADA para usar estados client-side */}
         {!isLoading && chamadosFiltrados.length > 0 && (
-          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between">
+          <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-800 flex items-center justify-between flex-wrap gap-3">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Mostrando {(paginacao.paginaAtual - 1) * paginacao.limitePorPagina + 1} a {Math.min(paginacao.paginaAtual * paginacao.limitePorPagina, paginacao.totalRegistros)} de {paginacao.totalRegistros}
+              Mostrando {inicio + 1} a {Math.min(fim, totalRegistros)} de {totalRegistros} resultados
             </p>
             <div className="flex gap-2">
               <button
-                onClick={() => handlePageChange(paginacao.paginaAtual - 1)}
-                disabled={paginacao.paginaAtual === 1}
+                onClick={() => handlePageChange(paginaAtual - 1)}
+                disabled={paginaAtual === 1}
                 className="p-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 <ChevronLeft size={18} />
               </button>
-              <span className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm">
-                {paginacao.paginaAtual}
-              </span>
+              
+              {/* Botões de página dinâmicos */}
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                  let pageNum;
+                  if (totalPaginas <= 5) {
+                    pageNum = i + 1;
+                  } else if (paginaAtual <= 3) {
+                    pageNum = i + 1;
+                  } else if (paginaAtual >= totalPaginas - 2) {
+                    pageNum = totalPaginas - 4 + i;
+                  } else {
+                    pageNum = paginaAtual - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => handlePageChange(pageNum)}
+                      className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                        paginaAtual === pageNum
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+              
               <button
-                onClick={() => handlePageChange(paginacao.paginaAtual + 1)}
-                disabled={paginacao.paginaAtual === paginacao.totalPaginas}
+                onClick={() => handlePageChange(paginaAtual + 1)}
+                disabled={paginaAtual === totalPaginas}
                 className="p-2 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
               >
                 <ChevronRight size={18} />
               </button>
+            </div>
+            
+            {/* Seletor de itens por página */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500 dark:text-gray-400">Itens por página:</span>
+              <select
+                value={itensPorPagina}
+                onChange={(e) => {
+                  setItensPorPagina(Number(e.target.value));
+                  setPaginaAtual(1);
+                }}
+                className="px-2 py-1 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-sm"
+              >
+                <option value={5}>5</option>
+                <option value={10}>10</option>
+                <option value={25}>25</option>
+                <option value={50}>50</option>
+              </select>
             </div>
           </div>
         )}

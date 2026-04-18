@@ -12,7 +12,12 @@ import {
   Users,
   AlertTriangle,
   FileText,
-  Loader2
+  Loader2,
+  Calendar1,
+  SquareActivity,
+  Stethoscope,
+  Car,
+  Tags
 } from "lucide-react"
 import { buscarChamadoPorId, alterarChamado, type Chamado } from "@/lib/chamado-service"
 import { listarTiposSuporte, type TipoSuporte } from "@/lib/tipoSuporte-service"
@@ -37,7 +42,11 @@ export default function EditarChamadoPage() {
     ChamadoPrioridade: "",
     ChamadoUrgencia: "",
     ChamadoStatus: "",
-    ChamadoDescricaoFormatada: ""
+    ChamadoDescricaoFormatada: "",
+    ChamadoDiasComProblema: 0,
+    ChamadoRiscoVidaHumana: false,
+    ChamadoRiscoVidaAnimal: false,
+    ChamadoBloqueioVia: false
   });
 
   useEffect(() => {
@@ -68,7 +77,11 @@ export default function EditarChamadoPage() {
         EquipeId: chamadoData.EquipeId?.toString() || "",
         ChamadoPrioridade: chamadoData.ChamadoPrioridade?.toString() || "",
         ChamadoUrgencia: chamadoData.ChamadoUrgencia || "",
-        ChamadoStatus: chamadoData.ChamadoStatus
+        ChamadoStatus: chamadoData.ChamadoStatus,
+        ChamadoDiasComProblema: chamadoData.ChamadoDiasComProblema || 0,
+        ChamadoRiscoVidaHumana: chamadoData.ChamadoRiscoVidaHumana || false,
+        ChamadoRiscoVidaAnimal: chamadoData.ChamadoRiscoVidaAnimal || false,
+        ChamadoBloqueioVia: chamadoData.ChamadoBloqueioVia || false
       });
 
     } catch (err) {
@@ -288,7 +301,7 @@ export default function EditarChamadoPage() {
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                 <Briefcase size={16} />
-                Tipo de Suporte
+                Tipo de Chamado
               </label>
               <select
                 value={formData.TipSupId}
@@ -301,6 +314,66 @@ export default function EditarChamadoPage() {
                     {tipo.TipSupNom}
                   </option>
                 ))}
+              </select>
+            </div>
+
+            {/* Dias com o Problema */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <Calendar1 size={16} />
+                Dias com o Problema
+              </label>
+              <input type="number" className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent" value={formData.ChamadoDiasComProblema} onChange={(e) => handleInputChange('ChamadoDiasComProblema', e.target.value)} disabled />
+            </div>
+
+            {/* Ocasiona Rico a Vidas Humanas? */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <SquareActivity size={16} />
+                Ocasiona Rico a Vidas Humanas?
+              </label>
+              <select
+                value={formData.ChamadoRiscoVidaHumana ? 'SIM' : 'NAO'}
+                onChange={(e) => handleInputChange('ChamadoRiscoVidaHumana', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              >
+                <option value="true">Sim</option>
+                <option value="false">Não</option>
+              </select>
+            </div>
+
+            {/* Ocasiona Rico a Vidas de Animais? */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <Stethoscope size={16} />
+                Ocasiona Rico a Vidas de Animais?
+              </label>
+              <select
+                value={formData.ChamadoRiscoVidaAnimal ? 'SIM' : 'NAO'}
+                onChange={(e) => handleInputChange('ChamadoRiscoVidaAnimal', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              >
+                <option value="true">Sim</option>
+                <option value="false">Não</option>
+              </select>
+            </div>
+
+            {/* Via/Rua está bloqueada pelo problema? */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+                <Car size={16} />
+                Via/Rua está bloqueada pelo problema?
+              </label>
+              <select
+                value={formData.ChamadoBloqueioVia ? 'SIM' : 'NAO'}
+                onChange={(e) => handleInputChange('ChamadoBloqueioVia', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                disabled
+              >
+                <option value="true">Sim</option>
+                <option value="false">Não</option>
               </select>
             </div>
 
@@ -328,7 +401,7 @@ export default function EditarChamadoPage() {
             {/* Prioridade */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
-                <AlertTriangle size={16} />
+                <Tags size={16} />
                 Prioridade (1-10)
               </label>
               <select
@@ -364,6 +437,7 @@ export default function EditarChamadoPage() {
                 ))}
               </select>
             </div>
+
           </div>
         </div>
 

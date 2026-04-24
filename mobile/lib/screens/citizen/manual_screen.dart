@@ -157,7 +157,7 @@ class ManualScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text("Ainda precisa de ajuda?", style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
-                Text("Fale com o suporte técnico da Fatec", style: GoogleFonts.inter(fontSize: 12)),
+                Text("Fale com o suporte técnico.", style: GoogleFonts.inter(fontSize: 12)),
               ],
             ),
           ),

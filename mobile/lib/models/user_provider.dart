@@ -26,8 +26,6 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Atalhos úteis para facilitar o uso nas telas ---
-  
   String? get token => _user?['token'] ?? _user?.token;
   
   int? get userId => _user?['id'] ?? _user?.id;

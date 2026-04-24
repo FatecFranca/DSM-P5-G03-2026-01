@@ -458,7 +458,7 @@ class ChamadoController {
                 });
 
                 if (tecnico) {
-                    filtro.OR = [
+                    filtro.AND = [
                         { UnidadeId: tecnico.UnidadeId },
                         { EquipeId: { in: tecnico.TecnicoEquipe.map(te => te.EquipeId) } }
                     ];

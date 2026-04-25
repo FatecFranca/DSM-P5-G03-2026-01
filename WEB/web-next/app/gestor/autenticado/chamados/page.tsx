@@ -103,20 +103,13 @@ export default function ChamadosPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<ChamadoFilters>({
-    //pagina: 1,
-    //limite: 10,
-    status: undefined,
+    status: 'PENDENTE',
     urgencia: undefined,
     dataInicio: undefined,
     dataFim: undefined
   });
-  // const [paginacao, setPaginacao] = useState({
-  //   //paginaAtual: 1,
-  //   //limitePorPagina: 10,
-  //   totalRegistros: 0,
-  //   totalPaginas: 1
-  // });
-  const [showFilters, setShowFilters] = useState(false);
+
+  const [showFilters, setShowFilters] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
   const [paginaAtual, setPaginaAtual] = useState(1);

@@ -104,15 +104,6 @@ class _THomeScreenState extends State<THomeScreen> {
                             Icons.analytics_outlined
                           ),
                         ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: _buildStatCard(
-                            "Pendentes", 
-                            stats?['porStatus']?['PENDENTE']?.toString() ?? "0", 
-                            Colors.orange, 
-                            Icons.pending_actions
-                          ),
-                        ),
                       ],
                     ),
                     const SizedBox(height: 15),

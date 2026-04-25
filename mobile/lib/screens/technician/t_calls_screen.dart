@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
@@ -16,64 +17,78 @@ class TCallsScreen extends StatefulWidget {
 class _TCallsScreenState extends State<TCallsScreen> {
   bool isLoading = true;
   List<dynamic> chamados = [];
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
-    _fetchChamadosTecnico();
+    // Garante que a busca só comece após a tela estar montada
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint("🏁 Interface pronta. Iniciando processos...");
+      _fetchChamadosTecnico();
+      _startAutoRefresh();
+    });
   }
 
-  /// Busca chamados filtrados pelo EquipeId do técnico
-  Future<void> _fetchChamadosTecnico() async {
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    debugPrint("🛑 Timer de atualização cancelado.");
+    super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _fetchChamadosTecnico(isAutoRefresh: true);
+    });
+  }
+
+  Future<void> _fetchChamadosTecnico({bool isAutoRefresh = false}) async {
     if (!mounted) return;
-    setState(() => isLoading = true);
 
     try {
       final user = Provider.of<ThemeModel>(context, listen: false).currentUser;
+      final url = Uri.parse('${AppConfig.baseUrl}/api/chamado');
 
-      // Validação de segurança: técnico precisa ter equipe vinculada
-      if (user == null || user.equipeId == null) {
-        debugPrint('⚠️ Técnico ou EquipeId não encontrados no profile');
-        setState(() => isLoading = false);
-        return;
-      }
+      if (!isAutoRefresh) setState(() => isLoading = true);
 
-      // Rota ajustada para usar equipeId como parâmetro de filtro
-      final url = Uri.parse('${AppConfig.baseUrl}/api/chamado?equipeId=${user.equipeId}');
-
-      final response = await http.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer ${user.token}',
-          'Content-Type': 'application/json',
-        },
-      ).timeout(const Duration(seconds: 10));
+      final response = await http
+          .get(
+            url,
+            headers: {
+              'Authorization': 'Bearer ${user?.token}',
+              'Content-Type': 'application/json',
+            },
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        final List<dynamic> todos = decoded['data'] ?? [];
+        final List<dynamic> todos = (decoded is List)
+            ? decoded
+            : (decoded['data'] ?? []);
 
-        // Regra de Negócio: Somente ATRIBUIDO, EMATENDIMENTO ou CONCLUIDO aparecem nesta lista
-        setState(() {
-          chamados = todos.where((c) {
-            final status = c['ChamadoStatus']?.toString().toUpperCase();
-            return status == 'ATRIBUIDO' || 
-                   status == 'EMATENDIMENTO' || 
-                   status == 'CONCLUIDO';
-          }).toList();
-        });
-      } else {
-        _showSnackBar('Erro ao carregar dados: ${response.statusCode}', isError: true);
+        if (mounted) {
+          setState(() {
+            // REGRA: Apenas chamados em andamento ou atribuídos aparecem.
+            // Pendentes (fila geral) e Cancelados são ignorados.
+            chamados = todos.where((c) {
+              final status = c['ChamadoStatus']?.toString().toUpperCase();
+
+              // O técnico só vê o que já está sob responsabilidade dele/equipe
+              return status == 'ATRIBUIDO' || status == 'EMATENDIMENTO';
+            }).toList();
+
+            isLoading = false;
+          });
+        }
       }
     } catch (e) {
-      debugPrint('💥 Erro técnico: $e');
-      _showSnackBar('Falha na conexão com o servidor', isError: true);
-    } finally {
+      debugPrint('💥 Erro no filtro técnico: $e');
       if (mounted) setState(() => isLoading = false);
     }
   }
 
-  /// Registra uma nova atividade (No 1º registro, a API muda status de ATRIBUIDO -> EMATENDIMENTO)
   Future<void> _postAtividade(int chamadoId, String descricao) async {
     try {
       final user = Provider.of<ThemeModel>(context, listen: false).currentUser;
@@ -89,56 +104,12 @@ class _TCallsScreenState extends State<TCallsScreen> {
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
-        _showSnackBar('✅ Atividade registrada com sucesso!');
-        _fetchChamadosTecnico(); // Refresh automático da lista
-      } else {
-        _showSnackBar('❌ Erro ao registrar atividade', isError: true);
+        _showSnackBar('✅ Atividade registrada!');
+        _fetchChamadosTecnico();
       }
     } catch (e) {
-      _showSnackBar('💥 Erro de conexão', isError: true);
+      _showSnackBar('💥 Erro de conexão ao salvar', isError: true);
     }
-  }
-
-  void _showAtividadeDialog(int chamadoId, String currentStatus) {
-    final TextEditingController controller = TextEditingController();
-    final isFirst = currentStatus == 'ATRIBUIDO';
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isFirst ? "Iniciar Atendimento" : "Nova Atividade"),
-        content: TextField(
-          controller: controller,
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: isFirst ? "Descreva o início dos trabalhos..." : "O que foi feito agora?",
-            border: const OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                _postAtividade(chamadoId, controller.text.trim());
-                Navigator.pop(context);
-              }
-            },
-            child: const Text("SALVAR"),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSnackBar(String msg, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? Colors.redAccent : Colors.green[700],
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
   }
 
   @override
@@ -146,33 +117,44 @@ class _TCallsScreenState extends State<TCallsScreen> {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
+    debugPrint("🎨 Renderizando lista com ${chamados.length} chamados.");
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text("Chamados da Equipe", style: TextStyle(fontWeight: FontWeight.bold)),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
+        title: const Text(
+          "Chamados da Equipe",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        actions: [
+          const Icon(Icons.sync, size: 14, color: Colors.blueGrey),
+          const SizedBox(width: 16),
+        ],
       ),
       body: RefreshIndicator(
-        onRefresh: _fetchChamadosTecnico,
-        child: isLoading 
-          ? const Center(child: CircularProgressIndicator())
-          : chamados.isEmpty 
+        onRefresh: () => _fetchChamadosTecnico(),
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : chamados.isEmpty
             ? _buildEmptyState(cs)
             : ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.all(16),
                 itemCount: chamados.length,
-                itemBuilder: (context, index) => _buildTicketCard(chamados[index], cs),
+                itemBuilder: (context, index) =>
+                    _buildTicketCard(chamados[index], cs),
               ),
       ),
     );
   }
 
   Widget _buildTicketCard(Map<String, dynamic> chamado, ColorScheme cs) {
-    final status = chamado['ChamadoStatus']?.toString().toUpperCase() ?? 'PENDENTE';
+    final status =
+        chamado['ChamadoStatus']?.toString().toUpperCase() ?? 'PENDENTE';
     final id = chamado['ChamadoId'];
-    final titulo = chamado['ChamadoTitulo'] ?? 'Sem Título';
-    final descricao = chamado['ChamadoDescricaoInicial'] ?? chamado['ChamadoDescricao'] ?? '';
+    // Verificamos se o título é nulo e usamos a descrição inicial como alternativa
+    final titulo = chamado['ChamadoTitulo'] ?? "Chamado #$id";
+    final descricao =
+        chamado['ChamadoDescricaoInicial'] ?? "Sem descrição disponível";
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -190,37 +172,82 @@ class _TCallsScreenState extends State<TCallsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("#$id", style: GoogleFonts.firaCode(color: cs.primary, fontWeight: FontWeight.bold)),
+                Text(
+                  "#$id",
+                  style: GoogleFonts.firaCode(
+                    color: cs.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 _buildStatusBadge(status, cs),
               ],
             ),
             const SizedBox(height: 16),
-            Text(titulo, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              titulo,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Text(
               descricao,
-              maxLines: 2,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
             ),
             const Divider(height: 32),
-            if (status != 'CONCLUIDO')
+            // Botão só aparece se não estiver cancelado ou concluído
+            if (status != 'CONCLUIDO' && status != 'CANCELADO')
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton.icon(
                   onPressed: () => _showAtividadeDialog(id, status),
-                  icon: Icon(status == 'ATRIBUIDO' ? Icons.play_arrow_rounded : Icons.add_comment_rounded),
-                  label: Text(status == 'ATRIBUIDO' ? "INICIAR ATIVIDADE" : "RELATAR PROGRESSO"),
+                  icon: const Icon(Icons.edit_note),
+                  label: const Text("ATUALIZAR CHAMADO"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: cs.primary,
                     foregroundColor: cs.onPrimary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showAtividadeDialog(int chamadoId, String currentStatus) {
+    final TextEditingController controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Registrar Atividade"),
+        content: TextField(
+          controller: controller,
+          maxLines: 3,
+          decoration: const InputDecoration(
+            hintText: "O que foi realizado?",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("CANCELAR"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                _postAtividade(chamadoId, controller.text.trim());
+                Navigator.pop(context);
+              }
+            },
+            child: const Text("SALVAR"),
+          ),
+        ],
       ),
     );
   }
@@ -232,15 +259,18 @@ class _TCallsScreenState extends State<TCallsScreen> {
     if (status == 'CONCLUIDO') color = Colors.green;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        status, 
-        style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w900),
+        status,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }
@@ -250,17 +280,23 @@ class _TCallsScreenState extends State<TCallsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.task_alt_rounded, size: 80, color: cs.primary.withOpacity(0.2)),
+          Icon(
+            Icons.inbox_outlined,
+            size: 60,
+            color: cs.primary.withOpacity(0.3),
+          ),
           const SizedBox(height: 16),
-          Text(
-            "Tudo em dia!",
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: cs.onSurface),
-          ),
-          Text(
-            "Não há chamados para sua equipe no momento.",
-            style: TextStyle(color: cs.onSurfaceVariant),
-          ),
+          const Text("Nenhum chamado pendente para sua equipe."),
         ],
+      ),
+    );
+  }
+
+  void _showSnackBar(String msg, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg),
+        backgroundColor: isError ? Colors.redAccent : Colors.green,
       ),
     );
   }

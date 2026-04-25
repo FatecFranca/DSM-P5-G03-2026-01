@@ -38,28 +38,25 @@ class CallsScreenState extends State<CallsScreen> {
     loadCalls();
   }
 
-  // Método para aplicar os filtros de status e busca
-  void _applyFilters() {
-    setState(() {
-      _filteredCalls = _calls.where((call) {
-        // 1. Normaliza o status selecionado e o do chamado (remove espaços e passa para UpperCase)
-        final selected = _selectedStatus.replaceAll(" ", "").toUpperCase();
-        final currentCallStatus = call.status.replaceAll(" ", "").toUpperCase();
+void _applyFilters() {
+  setState(() {
+    _filteredCalls = _calls.where((call) {
+      // Garante que o status seja String antes de tratar
+      final selected = _selectedStatus.replaceAll(" ", "").toUpperCase();
+      final currentCallStatus = (call.status ?? "").toString().replaceAll(" ", "").toUpperCase();
 
-        final matchesStatus =
-            _selectedStatus == "TODOS" || currentCallStatus == selected;
+      final matchesStatus = _selectedStatus == "TODOS" || currentCallStatus == selected;
 
-        // 2. Filtro de busca por texto ou ID
-        final matchesSearch =
-            call.descricaoInicial.toLowerCase().contains(
-              _searchQuery.toLowerCase(),
-            ) ||
-            call.id.toString().contains(_searchQuery);
+      // Garante que a descrição seja String para o contains
+      final desc = (call.descricaoInicial ?? "").toString().toLowerCase();
+      final query = _searchQuery.toLowerCase();
+      
+      final matchesSearch = desc.contains(query) || call.id.toString().contains(query);
 
-        return matchesStatus && matchesSearch;
-      }).toList();
-    });
-  }
+      return matchesStatus && matchesSearch;
+    }).toList();
+  });
+}
 
   // Método público para permitir refresh externo
   Future<void> loadCalls() async {
@@ -74,14 +71,15 @@ class CallsScreenState extends State<CallsScreen> {
 
       if (_currentUser == null) return;
 
-      final uri = Uri.parse('${AppConfig.baseUrl}/api/chamado').replace(
+      final uri = Uri.parse('${AppConfig.baseUrl}/api/chamado');
+      /*.replace(
         queryParameters: {
           'pagina': '1',
           'limite': '50',
           'pessoaId': _currentUser!.id.toString(),
           'unidadeId': _currentUser!.unidadeId?.toString() ?? '',
         },
-      );
+      );*/
 
       final response = await http.get(
         uri,
@@ -94,14 +92,18 @@ class CallsScreenState extends State<CallsScreen> {
           final List<dynamic> chamadosJson = data['data'] as List<dynamic>;
 
           setState(() {
-            // 1. Converte o JSON para a lista principal
-            _calls = chamadosJson
-                .map((json) => CallModel.fromJson(json))
-                .toList();
+  _calls = chamadosJson.map((json) {
+    try {
+      return CallModel.fromJson(json);
+    } catch (e) {
+      debugPrint("❌ Erro ao mapear o chamado ID ${json['ChamadoId']}: $e");
+      // Retorne um objeto vazio ou lance o erro para saber qual campo falhou
+      throw e; 
+    }
+  }).toList();
 
-            // 2. Aplica o filtro para popular a lista _filteredCalls
-            _applyFilters();
-          });
+  _applyFilters();
+});
         }
       }
     } catch (e) {

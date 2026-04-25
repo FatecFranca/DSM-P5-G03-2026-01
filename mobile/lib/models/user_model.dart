@@ -39,7 +39,7 @@ class UserProfile {
       role: data['tipo'] ?? 'desconhecido',
       unitName: usuario['Unidade']?['UnidadeNome'] ?? 'Sem unidade',
       unidadeId: usuario['Unidade']?['UnidadeId'],
-      equipeId: json['EquipeId'],
+      equipeId: json['EquipeId'] ?? json['equipeId'],
       token: data['token'],
     );
   }

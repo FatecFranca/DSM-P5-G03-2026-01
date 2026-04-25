@@ -565,7 +565,7 @@ class ChamadoController {
                 prisma.chamado.count({ where: filtro })
             ]);
 
-            console.log('Chamados encontrados:', chamados, 'Total:', chamados.length);
+            //console.log('Chamados encontrados:', chamados, 'Total:', chamados.length);
 
             res.status(200).json({
                 data: chamados,

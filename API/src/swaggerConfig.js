@@ -1,4 +1,15 @@
 const swaggerJsdoc = require('swagger-jsdoc');
+require('dotenv').config();
+
+const urls = process.env.DOC_API_SERVERS_URLS?.split(',') || []
+const descriptions = process.env.DOC_API_SERVERS_DESCRIPTIONS?.split(',') || []
+
+const apiServers = urls.map((url, index) => ({
+  url,
+  description: descriptions[index] || ''
+}))
+
+//console.log('API Servers configurados para Swagger:', apiServers);
 
 const options = {
   definition: {
@@ -1040,12 +1051,7 @@ const options = {
         },
       },
     },
-    servers: [
-      {
-        url: 'http://localhost:3000/api',
-        description: 'Servidor de desenvolvimento'
-      },
-    ],
+    servers: apiServers,
   },
   apis: ['./src/routes/*.js'], // Caminho para os arquivos onde você definirá as rotas
 };

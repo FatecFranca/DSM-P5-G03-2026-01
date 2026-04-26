@@ -905,10 +905,10 @@ class ChamadoController {
             // Validar transições de status
             const transicoesValidas = {
                 'PENDENTE': ['ANALISADO', 'CANCELADO', 'FALTAINFORMACAO', 'RECUSADO'],
-                'ANALISADO': ['ATRIBUIDO', 'PENDENTE', 'RECUSADO'],
+                'ANALISADO': ['ATRIBUIDO', 'PENDENTE', 'RECUSADO', 'FALTAINFORMACAO'],
                 'ATRIBUIDO': ['EMATENDIMENTO', 'ANALISADO'],
                 'EMATENDIMENTO': ['CONCLUIDO', 'ATRIBUIDO'],
-                'FALTAINFORMACAO': ['ATRIBUIDO', 'RECUSADO', 'CANCELADO'],
+                'FALTAINFORMACAO': ['ATRIBUIDO', 'RECUSADO', 'CANCELADO', 'PENDENTE', 'ANALISADO'],
                 'CONCLUIDO': [],
                 'CANCELADO': [],
                 'RECUSADO': []
@@ -1092,7 +1092,7 @@ class ChamadoController {
                     by: ['ChamadoUrgencia'],
                     where: {
                         ...filtro,
-                        ChamadoUrgencia: { not: null }
+                        ChamadoUrgencia: { not: null }, ChamadoStatus: { not: 'CANCELADO', not: 'RECUSADO' }
                     },
                     _count: true
                 }),

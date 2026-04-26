@@ -8,10 +8,12 @@ const swaggerSpec = require('./swaggerConfig');
 
 const app = express();
 
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',');
+
 const corsOptions = {
-    origin: 'http://localhost:3000',
+    origin: allowedOrigins,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Inclua OPTIONS
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     exposedHeaders: ['Content-Range', 'X-Content-Range'],
     preflightContinue: false,

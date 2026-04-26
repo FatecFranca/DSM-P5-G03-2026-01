@@ -17,7 +17,7 @@ export interface Chamado {
   ChamadoDescricaoFormatada?: string;
   ChamadoPrioridade?: number;
   ChamadoUrgencia?: 'BAIXA' | 'MEDIA' | 'ALTA' | 'URGENTE';
-  ChamadoStatus: 'PENDENTE' | 'ANALISADO' | 'ATRIBUIDO' | 'EMATENDIMENTO' | 'CONCLUIDO' | 'CANCELADO' | 'RECUSADO';
+  ChamadoStatus: 'PENDENTE' | 'ANALISADO' | 'ATRIBUIDO' | 'EMATENDIMENTO' | 'CONCLUIDO' | 'CANCELADO' | 'RECUSADO' | 'FALTAINFORMACAO';
   ChamadoDtAbertura: string;
   ChamadoDtEncerramento?: string;
   ChamadoDtPlanejada?: string;

@@ -23,7 +23,6 @@ class _TCallsScreenState extends State<TCallsScreen> {
   @override
   void initState() {
     super.initState();
-    // Garante que a busca só comece após a tela estar montada
     WidgetsBinding.instance.addPostFrameCallback((_) {
       debugPrint("🏁 Interface pronta. Iniciando processos...");
       _fetchChamadosTecnico();
@@ -34,7 +33,6 @@ class _TCallsScreenState extends State<TCallsScreen> {
   @override
   void dispose() {
     _refreshTimer?.cancel();
-    debugPrint("🛑 Timer de atualização cancelado.");
     super.dispose();
   }
 
@@ -46,40 +44,30 @@ class _TCallsScreenState extends State<TCallsScreen> {
 
   Future<void> _fetchChamadosTecnico({bool isAutoRefresh = false}) async {
     if (!mounted) return;
-
     try {
       final user = Provider.of<ThemeModel>(context, listen: false).currentUser;
       final url = Uri.parse('${AppConfig.baseUrl}/api/chamado');
 
       if (!isAutoRefresh) setState(() => isLoading = true);
 
-      final response = await http
-          .get(
-            url,
-            headers: {
-              'Authorization': 'Bearer ${user?.token}',
-              'Content-Type': 'application/json',
-            },
-          )
-          .timeout(const Duration(seconds: 10));
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${user?.token}',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-        final List<dynamic> todos = (decoded is List)
-            ? decoded
-            : (decoded['data'] ?? []);
+        final List<dynamic> todos = (decoded is List) ? decoded : (decoded['data'] ?? []);
 
         if (mounted) {
           setState(() {
-            // REGRA: Apenas chamados em andamento ou atribuídos aparecem.
-            // Pendentes (fila geral) e Cancelados são ignorados.
             chamados = todos.where((c) {
               final status = c['ChamadoStatus']?.toString().toUpperCase();
-
-              // O técnico só vê o que já está sob responsabilidade dele/equipe
               return status == 'ATRIBUIDO' || status == 'EMATENDIMENTO';
             }).toList();
-
             isLoading = false;
           });
         }
@@ -90,27 +78,51 @@ class _TCallsScreenState extends State<TCallsScreen> {
     }
   }
 
-  Future<void> _postAtividade(int chamadoId, String descricao) async {
+  // NOVA FUNÇÃO PARA CONCLUIR CHAMADO
+  Future<void> _patchStatusConcluido(int id) async {
     try {
       final user = Provider.of<ThemeModel>(context, listen: false).currentUser;
-      final url = Uri.parse('${AppConfig.baseUrl}/api/chamado/$chamadoId');
+      final url = Uri.parse('${AppConfig.baseUrl}/api/chamado/$id/status');
 
-      final response = await http.post(
+      final response = await http.patch(
         url,
         headers: {
           'Authorization': 'Bearer ${user?.token}',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({"AtividadeDescricao": descricao}),
+        body: jsonEncode({"ChamadoStatus": "CONCLUIDO"}),
       );
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        _showSnackBar('✅ Atividade registrada!');
+      if (response.statusCode == 200) {
+        _showSnackBar('✅ Chamado concluído com sucesso!');
         _fetchChamadosTecnico();
+      } else {
+        _showSnackBar('❌ Erro ao concluir chamado', isError: true);
       }
     } catch (e) {
-      _showSnackBar('💥 Erro de conexão ao salvar', isError: true);
+      _showSnackBar('💥 Erro de conexão', isError: true);
     }
+  }
+
+  void _confirmarConclusao(int id) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Finalizar Chamado"),
+        content: const Text("Deseja realmente marcar este chamado como CONCLUÍDO?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _patchStatusConcluido(id);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text("SIM, CONCLUIR"),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -118,18 +130,16 @@ class _TCallsScreenState extends State<TCallsScreen> {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
 
-    debugPrint("🎨 Renderizando lista com ${chamados.length} chamados.");
-
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
-          "Chamados da Equipe",
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
+        title: const Text("Chamados da Equipe", style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
-          const Icon(Icons.sync, size: 14, color: Colors.blueGrey),
-          const SizedBox(width: 16),
+          IconButton(
+            icon: const Icon(Icons.refresh, size: 20),
+            onPressed: () => _fetchChamadosTecnico(),
+          ),
+          const SizedBox(width: 8),
         ],
       ),
       body: RefreshIndicator(
@@ -137,25 +147,21 @@ class _TCallsScreenState extends State<TCallsScreen> {
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : chamados.isEmpty
-            ? _buildEmptyState(cs)
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: chamados.length,
-                itemBuilder: (context, index) =>
-                    _buildTicketCard(chamados[index], cs),
-              ),
+                ? _buildEmptyState(cs)
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: chamados.length,
+                    itemBuilder: (context, index) => _buildTicketCard(chamados[index], cs),
+                  ),
       ),
     );
   }
 
   Widget _buildTicketCard(Map<String, dynamic> chamado, ColorScheme cs) {
-    final status =
-        chamado['ChamadoStatus']?.toString().toUpperCase() ?? 'PENDENTE';
+    final status = chamado['ChamadoStatus']?.toString().toUpperCase() ?? 'PENDENTE';
     final id = chamado['ChamadoId'];
-    // Verificamos se o título é nulo e usamos a descrição inicial como alternativa
     final titulo = chamado['ChamadoTitulo'] ?? "Chamado #$id";
-    final descricao =
-        chamado['ChamadoDescricaoInicial'] ?? "Sem descrição disponível";
+    final descricao = chamado['ChamadoDescricaoInicial'] ?? "Sem descrição disponível";
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -173,95 +179,96 @@ class _TCallsScreenState extends State<TCallsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "#$id",
-                  style: GoogleFonts.firaCode(
-                    color: cs.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                Text("#$id",
+                    style: GoogleFonts.firaCode(color: cs.primary, fontWeight: FontWeight.bold)),
                 _buildStatusBadge(status, cs),
               ],
             ),
             const SizedBox(height: 16),
-            Text(
-              titulo,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            Text(titulo, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text(
-              descricao,
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14),
-            ),
+            Text(descricao,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(color: cs.onSurfaceVariant, fontSize: 14)),
             const Divider(height: 32),
-            // Botão só aparece se não estiver cancelado ou concluído
-            if (status != 'CONCLUIDO' && status != 'CANCELADO')
+            
+            // LÓGICA DE BOTÕES POR STATUS
+            if (status == 'EMATENDIMENTO')
+              Row(
+                children: [
+                  // 1. Botão Ver Atividades (Logs)
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () => debugPrint("🔍 Ver atividades do chamado #$id"),
+                      icon: const Icon(Icons.list_alt_rounded, size: 18),
+                      label: const Text("LOGS"),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(0, 48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // 2. Botão Adicionar Atividade (+)
+                  IconButton.filled(
+                    onPressed: () async {
+                      final res = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => NewCallDescriptionScreen(chamadoId: id)),
+                      );
+                      if (res == true) _fetchChamadosTecnico();
+                    },
+                    icon: const Icon(Icons.add),
+                    style: IconButton.styleFrom(
+                      backgroundColor: cs.secondaryContainer,
+                      foregroundColor: cs.onSecondaryContainer,
+                      minimumSize: const Size(48, 48),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
+                  // 3. Botão Concluir
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () => _confirmarConclusao(id),
+                      icon: const Icon(Icons.check_circle_outline, size: 18),
+                      label: const Text("CONCLUIR"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green.shade700,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(0, 48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else if (status == 'ATRIBUIDO')
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-  // Navega para a tela de nova atividade e aguarda o retorno
-                    final resultado = await Navigator.push(
+                    final res = await Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (context) => NewCallDescriptionScreen(chamadoId: id),
-                      ),
+                      MaterialPageRoute(builder: (context) => NewCallDescriptionScreen(chamadoId: id)),
                     );
-
-                    // Se a tela retornar 'true', atualizamos a lista de chamados
-                    if (resultado == true) {
-                      _fetchChamadosTecnico();
-                    }
+                    if (res == true) _fetchChamadosTecnico();
                   },
                   icon: const Icon(Icons.edit_note),
                   label: const Text("ATUALIZAR CHAMADO"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: cs.primary,
                     foregroundColor: cs.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _showAtividadeDialog(int chamadoId, String currentStatus) {
-    final TextEditingController controller = TextEditingController();
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Registrar Atividade"),
-        content: TextField(
-          controller: controller,
-          maxLines: 3,
-          decoration: const InputDecoration(
-            hintText: "O que foi realizado?",
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("CANCELAR"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.trim().isNotEmpty) {
-                _postAtividade(chamadoId, controller.text.trim());
-                Navigator.pop(context);
-              }
-            },
-            child: const Text("SALVAR"),
-          ),
-        ],
       ),
     );
   }
@@ -274,18 +281,8 @@ class _TCallsScreenState extends State<TCallsScreen> {
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        status,
-        style: TextStyle(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+      child: Text(status, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }
 
@@ -294,11 +291,7 @@ class _TCallsScreenState extends State<TCallsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.inbox_outlined,
-            size: 60,
-            color: cs.primary.withOpacity(0.3),
-          ),
+          Icon(Icons.inbox_outlined, size: 60, color: cs.primary.withOpacity(0.3)),
           const SizedBox(height: 16),
           const Text("Nenhum chamado pendente para sua equipe."),
         ],
@@ -308,10 +301,7 @@ class _TCallsScreenState extends State<TCallsScreen> {
 
   void _showSnackBar(String msg, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: isError ? Colors.redAccent : Colors.green,
-      ),
+      SnackBar(content: Text(msg), backgroundColor: isError ? Colors.redAccent : Colors.green),
     );
   }
 }

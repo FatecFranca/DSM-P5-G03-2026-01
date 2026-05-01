@@ -10,7 +10,7 @@ router.use(authMiddleware);
 
 /**
  * @openapi
- * /atividades/chamado/{chamadoId}:
+ * /atividadechamado/chamado/{chamadoId}:
  *   get:
  *     summary: Lista atividades de um chamado
  *     description: Retorna todas as atividades registradas em um chamado específico. Requer autenticação.
@@ -64,7 +64,7 @@ router.get('/chamado/:chamadoId', atividadeChamadoController.listarAtividadesPor
 
 /**
  * @openapi
- * /atividades/tecnico/{tecnicoId}:
+ * /atividadechamado/tecnico/{tecnicoId}:
  *   get:
  *     summary: Lista atividades de um técnico
  *     description: Retorna todas as atividades registradas por um técnico específico. Requer autenticação.
@@ -131,7 +131,7 @@ router.get('/tecnico/:tecnicoId', atividadeChamadoController.listarAtividadesPor
 
 /**
  * @openapi
- * /atividades/chamado/{chamadoId}/estatisticas:
+ * /atividadechamado/chamado/{chamadoId}/estatisticas:
  *   get:
  *     summary: Estatísticas de atividades de um chamado
  *     description: Retorna estatísticas como total de atividades, técnicos envolvidos, primeira e última atividade. Requer autenticação.
@@ -188,7 +188,7 @@ router.get('/chamado/:chamadoId/estatisticas', atividadeChamadoController.estati
 
 /**
  * @openapi
- * /atividades/{id}:
+ * /atividadechamado/{id}:
  *   get:
  *     summary: Busca uma atividade por ID
  *     description: Retorna os detalhes completos de uma atividade específica. Requer autenticação.
@@ -222,7 +222,7 @@ router.get('/:id', atividadeChamadoController.buscarAtividadePorId);
 
 /**
  * @openapi
- * /atividades/chamado/{chamadoId}:
+ * /atividadechamado/chamado/{chamadoId}:
  *   post:
  *     summary: Cria uma nova atividade em um chamado
  *     description: Registra uma nova atividade em um chamado. Apenas técnicos da equipe responsável podem criar atividades.
@@ -276,7 +276,7 @@ router.post('/chamado/:chamadoId', atividadeChamadoController.criarAtividade);
 
 /**
  * @openapi
- * /atividades/{id}:
+ * /atividadechamado/{id}:
  *   put:
  *     summary: Altera uma atividade existente
  *     description: Altera a descrição de uma atividade. Apenas o técnico que criou a atividade pode alterá-la.
@@ -326,7 +326,7 @@ router.put('/:id', atividadeChamadoController.alterarAtividade);
 
 /**
  * @openapi
- * /atividades/{id}:
+ * /atividadechamado/{id}:
  *   delete:
  *     summary: Exclui uma atividade
  *     description: Exclui uma atividade. Apenas o técnico que criou a atividade pode excluí-la.

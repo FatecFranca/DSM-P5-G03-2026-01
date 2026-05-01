@@ -109,7 +109,7 @@ class DepartamentoController {
 
         } catch (error) {
             console.error('Erro ao cadastrar departamento:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao cadastrar departamento' });
         }
     }
 
@@ -243,7 +243,7 @@ class DepartamentoController {
 
         } catch (error) {
             console.error('Erro ao alterar departamento:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar departamento' });
         }
     }
 
@@ -336,7 +336,7 @@ class DepartamentoController {
 
         } catch (error) {
             console.error('Erro ao listar departamentos:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar departamentos' });
         }
     }
 
@@ -431,7 +431,7 @@ class DepartamentoController {
 
         } catch (error) {
             console.error('Erro ao buscar departamento:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao buscar departamento' });
         }
     }
 
@@ -539,7 +539,7 @@ class DepartamentoController {
 
         } catch (error) {
             console.error('Erro ao alterar status do departamento:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar status do departamento' });
         }
     }
 

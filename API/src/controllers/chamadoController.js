@@ -134,7 +134,7 @@ class ChamadoController {
 
         } catch (error) {
             console.error('Erro ao abrir chamado:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao abrir chamado' });
         }
     }
 
@@ -401,7 +401,7 @@ class ChamadoController {
 
         } catch (error) {
             console.error('Erro ao alterar chamado:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar chamado' });
         }
     }
 
@@ -579,7 +579,7 @@ class ChamadoController {
 
         } catch (error) {
             console.error('Erro ao listar chamados:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar chamados' });
         }
     }
 
@@ -715,7 +715,7 @@ class ChamadoController {
 
         } catch (error) {
             console.error('Erro ao buscar chamado:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao buscar chamado' });
         }
     }
 
@@ -806,7 +806,7 @@ class ChamadoController {
 
         } catch (error) {
             console.error('Erro ao atribuir equipe:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao atribuir equipe' });
         }
     }
 
@@ -1011,7 +1011,7 @@ class ChamadoController {
 
         } catch (error) {
             console.error('Erro ao alterar status:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar status' });
         }
     }
 
@@ -1155,7 +1155,7 @@ class ChamadoController {
 
         } catch (error) {
             console.error('Erro ao buscar estatísticas:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao buscar estatísticas' });
         }
     }
 

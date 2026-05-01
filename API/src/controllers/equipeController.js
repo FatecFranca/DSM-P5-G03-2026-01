@@ -121,7 +121,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao cadastrar equipe:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao cadastrar equipe' });
         }
     }
 
@@ -267,7 +267,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao alterar equipe:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar equipe' });
         }
     }
 
@@ -379,7 +379,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao listar equipes:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar equipes' });
         }
     }
 
@@ -464,7 +464,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao buscar equipe:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao buscar equipe' });
         }
     }
 
@@ -581,7 +581,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao alterar status da equipe:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar status da equipe' });
         }
     }
 
@@ -739,7 +739,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao adicionar técnico à equipe:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao adicionar técnico à equipe' });
         }
     }
 
@@ -843,7 +843,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao alterar vínculo:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar vínculo' });
         }
     }
 
@@ -931,7 +931,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao remover vínculo:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao remover vínculo' });
         }
     }
 
@@ -1022,7 +1022,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao listar vínculos:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar vínculos' });
         }
     }
 
@@ -1113,7 +1113,7 @@ class EquipeController {
 
         } catch (error) {
             console.error('Erro ao listar vínculos do técnico:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar vínculos do técnico' });
         }
     }
 

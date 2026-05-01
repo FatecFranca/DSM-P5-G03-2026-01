@@ -62,7 +62,7 @@ class UnidadeController {
         } catch (error) {
             console.error('Erro ao cadastrar unidade:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro ao cadastrar unidade'
             });
         }
     }
@@ -170,7 +170,7 @@ class UnidadeController {
         } catch (error) {
             console.error('Erro ao alterar unidade:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro ao alterar unidade'
             });
         }
     }
@@ -247,7 +247,7 @@ class UnidadeController {
         } catch (error) {
             console.error('Erro ao listar unidades:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro ao listar unidades'
             });
         }
     }
@@ -308,7 +308,7 @@ class UnidadeController {
         } catch (error) {
             console.error('Erro ao buscar unidade:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro ao buscar unidade'
             });
         }
     }
@@ -379,7 +379,7 @@ class UnidadeController {
         } catch (error) {
             console.error('Erro ao alterar status da unidade:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro ao alterar status da unidade'
             });
         }
     }

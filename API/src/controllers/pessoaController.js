@@ -97,7 +97,7 @@ class PessoaController {
         } catch (error) {
             console.error('Erro no login da pessoa:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro no login da pessoa'
             });
         }
     }
@@ -255,7 +255,7 @@ class PessoaController {
 
         } catch (error) {
             console.error('Erro ao cadastrar pessoa:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao cadastrar pessoa' });
         }
     }
 
@@ -484,7 +484,7 @@ class PessoaController {
 
         } catch (error) {
             console.error('Erro ao alterar pessoa:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar pessoa' });
         }
     }
 
@@ -601,7 +601,7 @@ class PessoaController {
 
         } catch (error) {
             console.error('Erro ao listar pessoas:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar pessoas' });
         }
     }
 
@@ -676,7 +676,7 @@ class PessoaController {
 
         } catch (error) {
             console.error('Erro ao buscar pessoa:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao buscar pessoa' });
         }
     }
 
@@ -796,7 +796,7 @@ class PessoaController {
 
         } catch (error) {
             console.error('Erro ao alterar status da pessoa:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar status da pessoa' });
         }
     }
 
@@ -869,7 +869,7 @@ class PessoaController {
 
         } catch (error) {
             console.error('Erro ao listar pessoas por unidade:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar pessoas por unidade' });
         }
     }
 }

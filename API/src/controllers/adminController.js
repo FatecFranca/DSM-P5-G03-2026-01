@@ -69,7 +69,7 @@ class AdminController {
 
         } catch (error) {
             console.error('Erro no login do administrador:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro no login do administrador' });
         }
     }
 
@@ -158,7 +158,7 @@ class AdminController {
 
         } catch (error) {
             console.error('Erro ao alterar administrador:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar administrador' });
         }
     }
 
@@ -250,7 +250,7 @@ class AdminController {
         } catch (error) {
             console.error('Erro ao montar dashboardo administrador:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro ao montar dashboardo administrador'
             });
         }
 

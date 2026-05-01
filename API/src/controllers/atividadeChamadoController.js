@@ -141,7 +141,7 @@ class AtividadeChamadoController {
 
         } catch (error) {
             console.error('Erro ao criar atividade:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao criar atividade' });
         }
     }
 
@@ -241,7 +241,7 @@ class AtividadeChamadoController {
 
         } catch (error) {
             console.error('Erro ao alterar atividade:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar atividade' });
         }
     }
 
@@ -312,7 +312,7 @@ class AtividadeChamadoController {
 
         } catch (error) {
             console.error('Erro ao excluir atividade:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao excluir atividade' });
         }
     }
 
@@ -431,7 +431,7 @@ class AtividadeChamadoController {
 
         } catch (error) {
             console.error('Erro ao listar atividades:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar atividades' });
         }
     }
 
@@ -565,7 +565,7 @@ class AtividadeChamadoController {
 
         } catch (error) {
             console.error('Erro ao listar atividades do técnico:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar atividades do técnico' });
         }
     }
 
@@ -674,7 +674,7 @@ class AtividadeChamadoController {
 
         } catch (error) {
             console.error('Erro ao buscar atividade:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao buscar atividade' });
         }
     }
 
@@ -764,7 +764,7 @@ class AtividadeChamadoController {
 
         } catch (error) {
             console.error('Erro ao buscar estatísticas:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao buscar estatísticas' });
         }
     }
     

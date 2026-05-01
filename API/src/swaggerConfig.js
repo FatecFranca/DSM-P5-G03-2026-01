@@ -15,9 +15,9 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'API Chamados Públicos Node.js',
+      title: 'API Chamados Públicos',
       version: '1.0.0',
-      description: 'Documentação da API com Swagger',
+      description: 'Documentação da API Chamados Público com Swagger',
     },
     components: {
       schemas: {

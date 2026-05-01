@@ -115,7 +115,7 @@ class TecnicoController {
         } catch (error) {
             console.error('Erro no login do técnico:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro no login do técnico'
             });
         }
     }
@@ -314,7 +314,7 @@ class TecnicoController {
 
         } catch (error) {
             console.error('Erro ao cadastrar técnico:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao cadastrar técnico' });
         }
     }
 
@@ -619,7 +619,7 @@ class TecnicoController {
 
         } catch (error) {
             console.error('Erro ao alterar técnico:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar técnico' });
         }
     }
 
@@ -749,7 +749,7 @@ class TecnicoController {
 
         } catch (error) {
             console.error('Erro ao listar técnicos:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar técnicos' });
         }
     }
 
@@ -842,7 +842,7 @@ class TecnicoController {
 
         } catch (error) {
             console.error('Erro ao buscar técnico:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao buscar técnico' });
         }
     }
 
@@ -986,7 +986,7 @@ class TecnicoController {
 
         } catch (error) {
             console.error('Erro ao alterar status do técnico:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar status do técnico' });
         }
     }
 
@@ -1070,7 +1070,7 @@ class TecnicoController {
 
         } catch (error) {
             console.error('Erro ao listar técnicos por unidade:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar técnicos por unidade' });
         }
     }
     

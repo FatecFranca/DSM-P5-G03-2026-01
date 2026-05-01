@@ -99,7 +99,7 @@ class GestorController {
         } catch (error) {
             console.error('Erro no login do gestor:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro no login do gestor'
             });
         }
     }
@@ -284,7 +284,7 @@ class GestorController {
 
         } catch (error) {
             console.error('Erro ao cadastrar gestor:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao cadastrar gestor' });
         }
     }
 
@@ -670,7 +670,7 @@ class GestorController {
 
         } catch (error) {
             console.error('Erro ao alterar gestor:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar gestor' });
         }
     }
 
@@ -773,7 +773,7 @@ class GestorController {
 
         } catch (error) {
             console.error('Erro ao listar gestores:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao listar gestores' });
         }
     }
 
@@ -834,7 +834,7 @@ class GestorController {
 
         } catch (error) {
             console.error('Erro ao buscar gestor:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao buscar gestor' });
         }
     }
 
@@ -941,7 +941,7 @@ class GestorController {
 
         } catch (error) {
             console.error('Erro ao alterar status do gestor:', error);
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: 'Erro ao alterar status do gestor' });
         }
     }
 
@@ -1101,7 +1101,7 @@ class GestorController {
         } catch (error) {
             console.error('Erro ao montar dashboardo gestor:', error);
             res.status(500).json({
-                error: error.message
+                error: 'Erro ao montar dashboardo gestor'
             });
         }
 

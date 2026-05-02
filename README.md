@@ -135,7 +135,7 @@ Para o funcionamento pleno do site é necessário:
 5. Depois, ainda na pasta, crie o arquivo (.env) se baseando no (.exemple-env)
 6. Configure nele o acesso ao banco de dados
 7. Execute na pasta API os seguintes comandos para criar o BD, na sequencia: npx prisma generate -> npx prisma db push
-8. Execute na pasta API/scripts-mostrar após configurar o PEPPER no arquivo (criptografarSenha.js): node scripts/criptografarSenha.js
+8. Execute na pasta API/scripts-mostrar após configurar o PEPPER no arquivo (criptografarSenha.js): node scripts-mostrar/criptografarSenha.js
 9. Copie o hash retornado
 10. Acesse o seu BD pelo terminal ou PgAdm para inserir um usuário Administrado do sistema
 11. Execute a Query no BD:  insert into "Administrador" ("AdministradorUsuario", "AdministradorSenha") values ('USUARIO', 'hashdasenhagerado');

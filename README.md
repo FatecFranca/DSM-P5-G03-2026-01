@@ -46,20 +46,18 @@ O gerenciamento Web apresenta as seguintes telas e funcionalidades:
 ### Fluxo dos chamados:
 <img src="/prints/fluxo-chamados.png">
 
-<br>
-
 ### 🎬 [Vídeo de Apresentação](https://youtu.be/F0ldIhUy5Fs)
-
 <br>
 
 ## 📦 Aparência
 
 ### Mobile
-#### Login
-<img src="/prints/mobile/login.png">
+#### Cidadão
+<img src="/prints/mobile/cidadao1.png">
+<img src="/prints/mobile/cidadao2.png">
 
-#### Outros
-<img src="/prints/outros/login.png">
+#### Técnico
+<img src="/prints/mobile/tecnico.png">
 
 ### Web (Painel Administrativo)
 #### Login

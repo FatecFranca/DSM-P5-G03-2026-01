@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:classificador/screens/technician/call_activities_screen.dart';
 import 'package:classificador/screens/technician/new_call_description_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -200,7 +201,14 @@ class _TCallsScreenState extends State<TCallsScreen> {
                   // 1. Botão Ver Atividades (Logs)
                   Expanded(
                     child: OutlinedButton.icon(
-                      onPressed: () => debugPrint("🔍 Ver atividades do chamado #$id"),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CallActivitiesScreen(chamadoId: id),
+                          ),
+                        );
+                      },
                       icon: const Icon(Icons.list_alt_rounded, size: 18),
                       label: const Text("LOGS"),
                       style: OutlinedButton.styleFrom(

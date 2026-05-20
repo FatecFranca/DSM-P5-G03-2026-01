@@ -1,4 +1,4 @@
-import 'package:classificador/screens/citizen/new_call_screen.dart';
+import 'package:CDCP/screens/citizen/new_call_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;

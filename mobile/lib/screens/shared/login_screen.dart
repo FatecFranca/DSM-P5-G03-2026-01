@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui'; // Adicionado para efeitos de blur
 
-import 'package:classificador/config.dart';
-import 'package:classificador/screens/shared/components/bottom_nav_bar.dart';
+import 'package:CDCP/config.dart';
+import 'package:CDCP/screens/shared/components/bottom_nav_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;

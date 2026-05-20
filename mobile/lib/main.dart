@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
           final brightness = themeModel.currentBrightness;
 
           return MaterialApp(
-            title: 'Classificador',
+            title: 'CDCP',
             debugShowCheckedModeBanner: false, // Opcional: limpa a faixa de debug
             themeMode: brightness == Brightness.light
                 ? ThemeMode.light

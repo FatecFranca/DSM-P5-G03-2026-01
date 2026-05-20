@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:classificador/config.dart';
-import 'package:classificador/screens/shared/login_screen.dart';
+import 'package:CDCP/config.dart';
+import 'package:CDCP/screens/shared/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // Para FilteringTextInputFormatter
 import 'package:google_fonts/google_fonts.dart';

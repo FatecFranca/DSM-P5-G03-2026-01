@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:classificador/screens/technician/call_activities_screen.dart';
-import 'package:classificador/screens/technician/new_call_description_screen.dart';
+import 'package:CDCP/screens/technician/call_activities_screen.dart';
+import 'package:CDCP/screens/technician/new_call_description_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;

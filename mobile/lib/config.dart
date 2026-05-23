@@ -1,3 +1,3 @@
 class AppConfig {
-  static const String baseUrl = 'http://lpdccloud.canadacentral.cloudapp.azure.com:3001';
+  static const String baseUrl = 'https://lpdccloud.canadacentral.cloudapp.azure.com/api';
 }

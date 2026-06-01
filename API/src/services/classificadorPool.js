@@ -29,7 +29,7 @@ class ClassificadorPool {
         return new Promise((resolve, reject) => {
             const options = {
                 mode: 'text',
-                pythonPath: 'python',
+                pythonPath: process.env.PYTHON, //'python'
                 pythonOptions: ['-u'],
                 scriptPath: this.scriptPath,
                 args: []
@@ -41,7 +41,7 @@ class ClassificadorPool {
             
             const timeout = setTimeout(() => {
                 reject(new Error(`Timeout ao inicializar worker ${workerId}`));
-            }, 10000);
+            }, 20000);
             
             worker.once('message', (message) => {
                 clearTimeout(timeout);

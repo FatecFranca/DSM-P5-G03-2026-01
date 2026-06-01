@@ -374,7 +374,7 @@ class TipoSuporteController {
 
             let [tipos] = [];
 
-            console.log('filtro = ', filtro);
+            //console.log('filtro = ', filtro);
 
             // Buscar tipos de suporte
             if (usuarioLogado.usuarioTipo === 'ADMINISTRADOR' || usuarioLogado.usuarioTipo === 'GESTOR') {

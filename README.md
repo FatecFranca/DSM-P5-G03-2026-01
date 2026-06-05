@@ -46,8 +46,8 @@ O gerenciamento Web apresenta as seguintes telas e funcionalidades:
 ### Fluxo dos chamados:
 <img src="/prints/fluxo-chamados.png">
 
-### 🎬 [Vídeo de Apresentação](https://youtu.be/JnMI5b-C7w4)
-<br>
+
+## 🎬 [Vídeo de Apresentação](https://youtu.be/JnMI5b-C7w4)
 
 ## 📦 Aparência
 
@@ -184,7 +184,7 @@ Agradecemos aos professores que nos acompanharam no curso, e durante esse semest
 
 * **[Prof. Alessandro Fukuta](https://github.com/alessandro-fukuta)** — Computação em Nuvem I;
 * **[Prof. Adriano Donisete Cassiano](https://github.com/adrianoprof)** — Programação de Dispositivos Móveis II;
-* **Prof. Jaqueline Brigladori Pugliesi** — Aprendizado de Máquina;
+* **Prof. Jaqueline Brigladori Pugliesi** — Aprendizagem de Máquina;
 
 ---
 
